@@ -45,3 +45,7 @@ Thumbs.db
 
 # Local files
 *-local.*
+
+#environment files
+.env
+environment.ts
