@@ -1,0 +1,21 @@
+<div [class]="ui.pageWrapper">
+  <section [class]="ui.card">
+    <h1 [class]="ui.sectionTitle">OAuth callback</h1>
+
+    @if (status() === 'loading') {
+      <p class="mt-4 text-sm text-slate-600">Completing sign-in. Please wait...</p>
+    }
+
+    @if (status() === 'success') {
+      <p [class]="ui.successText">Authentication success for {{ authServerLabel() }} server.</p>
+      <a [class]="ui.buttonPrimary + ' mt-6'" [routerLink]="['/register', authServer()]">
+        Continue to register
+      </a>
+    }
+
+    @if (status() === 'error') {
+      <p [class]="ui.errorText + ' mt-4'">{{ errorMessage() }}</p>
+      <a [class]="ui.buttonSecondary + ' mt-6'" routerLink="/register">Go to register</a>
+    }
+  </section>
+</div>

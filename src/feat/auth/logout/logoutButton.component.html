@@ -1,0 +1,14 @@
+<button type="button" [class]="ui.buttonDanger" (click)="openConfirm()" [disabled]="processing()">
+  Logout
+</button>
+
+<app-confirm-modal
+  [isOpen]="modalOpen()"
+  [busy]="processing()"
+  title="Confirm logout"
+  description="Your session token and selected auth server will be removed from storage."
+  confirmText="Logout"
+  cancelText="Cancel"
+  (confirm)="confirmLogout()"
+  (cancel)="closeConfirm()"
+/>

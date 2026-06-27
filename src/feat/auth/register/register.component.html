@@ -1,0 +1,115 @@
+<div [class]="ui.pageWrapper">
+  <section [class]="ui.card">
+    <h1 [class]="ui.sectionTitle">Register account</h1>
+    <p [class]="ui.sectionDescription">
+      Selected auth server: <span class="font-semibold">{{ authServer() ?? 'not selected' }}</span>
+    </p>
+
+    @if (authServerError()) {
+      <p [class]="ui.errorText + ' mt-2'">{{ authServerError() }}</p>
+    }
+
+    <form class="mt-6" [formGroup]="form" (ngSubmit)="submit()">
+      <div [class]="ui.formGrid">
+        <div>
+          <label [class]="ui.label" for="username">Username</label>
+          <input id="username" [class]="ui.input" formControlName="username" type="text" autocomplete="username" />
+          @if (fieldError('username')) {
+            <p [class]="ui.errorText">{{ fieldError('username') }}</p>
+          }
+          @if (usernameExists()) {
+            <p [class]="ui.dangerText">Username already exists.</p>
+          }
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="email">Email</label>
+          <input id="email" [class]="ui.input" formControlName="email" type="email" autocomplete="email" />
+          @if (fieldError('email')) {
+            <p [class]="ui.errorText">{{ fieldError('email') }}</p>
+          }
+          @if (emailExists()) {
+            <p [class]="ui.dangerText">Email already exists.</p>
+          }
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="password">Password</label>
+          <input id="password" [class]="ui.input" formControlName="password" type="password" autocomplete="new-password" />
+          @if (fieldError('password')) {
+            <p [class]="ui.errorText">{{ fieldError('password') }}</p>
+          }
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="phoneNumber">Phone number</label>
+          <input
+            id="phoneNumber"
+            [class]="ui.input"
+            formControlName="phoneNumber"
+            type="tel"
+            autocomplete="tel"
+          />
+          @if (fieldError('phoneNumber')) {
+            <p [class]="ui.errorText">{{ fieldError('phoneNumber') }}</p>
+          }
+          @if (phoneNumberExists()) {
+            <p [class]="ui.dangerText">Phone number already exists.</p>
+          }
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="firstName">First name</label>
+          <input id="firstName" [class]="ui.input" formControlName="firstName" type="text" autocomplete="given-name" />
+          @if (fieldError('firstName')) {
+            <p [class]="ui.errorText">{{ fieldError('firstName') }}</p>
+          }
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="lastName">Last name</label>
+          <input id="lastName" [class]="ui.input" formControlName="lastName" type="text" autocomplete="family-name" />
+          @if (fieldError('lastName')) {
+            <p [class]="ui.errorText">{{ fieldError('lastName') }}</p>
+          }
+        </div>
+
+        <div [class]="ui.fullWidth">
+          <label [class]="ui.label" for="address">Address</label>
+          <input id="address" [class]="ui.input" formControlName="address" type="text" autocomplete="street-address" />
+          @if (fieldError('address')) {
+            <p [class]="ui.errorText">{{ fieldError('address') }}</p>
+          }
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="gender">Gender</label>
+          <select id="gender" [class]="ui.select" formControlName="gender">
+            <option value="MALE">MALE</option>
+            <option value="FEMALE">FEMALE</option>
+            <option value="OTHER">OTHER</option>
+          </select>
+          @if (fieldError('gender')) {
+            <p [class]="ui.errorText">{{ fieldError('gender') }}</p>
+          }
+        </div>
+      </div>
+
+      <button [class]="ui.buttonPrimary + ' mt-6 w-full sm:w-auto'" type="submit" [disabled]="submitDisabled()">
+        {{ submitting() ? 'Submitting...' : 'Register' }}
+      </button>
+
+      @if (submitMessage()) {
+        <p [class]="ui.successText">{{ submitMessage() }}</p>
+      }
+    </form>
+
+    <button (click)="logAccessToken()">
+        log access token 
+    </button>
+
+    <button (click)="try401()">
+      try 401 
+    </button>
+  </section>
+</div>
