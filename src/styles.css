@@ -1,3 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import 'tailwindcss';
+@import "tailwindcss";
+@import 'ngx-toastr/toastr';
+
+/* 3. Tell the browser to prioritize Toastr styles over Tailwind base resets */
+@layer base {
+  #toast-container * {
+    all: revert; /* Reverts Tailwind's preflight resets specifically inside toasts */
+  }
+}
+
+
