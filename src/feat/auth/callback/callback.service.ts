@@ -25,8 +25,10 @@ export class CallbackService {
 				tap((res) => {
 					const accessToken = res.data?.accessToken;
 					if (accessToken) {
-					this.tokenService.set(accessToken);
-						this.toastr.success(`Login successful: ${accessToken}`);
+						this.tokenService.set(accessToken);
+						this.toastr.success(`Login successful`);
+					}else{
+						this.toastr.error('Login failed');
 					}
 				})
 			);

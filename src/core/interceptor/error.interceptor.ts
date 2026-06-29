@@ -7,7 +7,7 @@ import {
 import { inject } from "@angular/core";
 import { Router } from "@angular/router";
 import { ToastrService } from "ngx-toastr";
-import { BehaviorSubject, Observable, throwError } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, throwError } from "rxjs";
 import { catchError, filter, switchMap, take } from "rxjs/operators";
 import { environment } from "../../environments/environment";
 import { TokenService } from "../token.service";
@@ -97,9 +97,6 @@ function handle401(
   http: HttpClient,
   tokenService: TokenService
 ): Observable<any> {
-  toastr.info("Session expired. Attempting to refresh token...", undefined, {
-    toastClass: "refreshing-token",
-  });
   
   if (isRefreshing) {
     return refreshToken$.pipe(
@@ -146,7 +143,7 @@ function handle401(
       catchError((refreshError) => {
         isRefreshing = false;
         handleSessionExpired(toastr, router, tokenService);
-        return throwError(() => refreshError);
+        return EMPTY;
       })
     );
 }
@@ -157,5 +154,6 @@ function handleSessionExpired(toastr: ToastrService, router: Router, tokenServic
   clearStoredAuthServer();
   sessionStorage.setItem("previousPath", window.location.pathname);
   toastr.error("Session expired or not logged in");
-  // setTimeout(() => router.navigate(["/login"]), 2000);
+
+  setTimeout(() => router.navigate(["/login"]), 2000);
 }

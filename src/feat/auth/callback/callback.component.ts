@@ -9,6 +9,8 @@ import {
 } from '../auth.type';
 import { CallbackService } from './callback.service';
 import type { CallbackStatus } from './callback.type';
+import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../../environments/environment.development';
 
 @Component({
   selector: 'app-callback',
@@ -20,6 +22,7 @@ export class CallbackComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly callbackService = inject(CallbackService);
+  private readonly toastr = inject(ToastrService);
 
   readonly ui = UI_CLASS_NAME;
 
@@ -33,14 +36,15 @@ export class CallbackComponent implements OnInit {
     const code = this.route.snapshot.queryParamMap.get('code');
 
     if (!isAuthServer(authServerParam)) {
-      this.status.set('error');
-      this.errorMessage.set('Invalid auth server in URL. Use /callback/local or /callback/remote.');
+      this.toastr.error('Invalid auth server parameter.');
+      this.router.navigate(['/']);
       return;
     }
 
     if (!code) {
-      this.status.set('error');
-      this.errorMessage.set('Missing OAuth code in query string.');
+      const loginUrl = authServerParam === "local" ? environment.LOCAL_LOGIN_API_URL : environment.REMOTE_LOGIN_API_URL; 
+      this.toastr.error('Login failed.');
+      this.router.navigate([loginUrl]);
       return;
     }
 
