@@ -2,6 +2,13 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
 	{
+		path: 'login',
+		loadComponent: () =>
+			import('../feat/auth/login/login.component').then(
+				(m) => m.LoginComponent
+			),
+	},
+	{
 		path: 'register',
 		loadComponent: () =>
 			import('../feat/auth/register/register.component').then(
