@@ -15,7 +15,6 @@ export const passwordSchema = z
   );
 
 export const emailSchema = z
-  .string()
   .email('Email is invalid.');
 
 export const nonEmptyTextSchema = (label: string) =>

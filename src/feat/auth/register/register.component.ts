@@ -9,7 +9,7 @@ import {
   FormBuilder,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   debounceTime,
@@ -40,16 +40,16 @@ import { HttpClient } from '@angular/common/http';
 @Component({
   selector: 'app-register',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
 })
 export class RegisterComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly route = inject(ActivatedRoute);
   private readonly registerService = inject(RegisterService);
   private readonly toastr = inject(ToastrService);
   private readonly tokenService = inject(TokenService);
   private readonly http = inject(HttpClient);
+  private readonly authServer = "local";
 
   readonly ui = UI_CLASS_NAME;
 
@@ -64,9 +64,6 @@ export class RegisterComponent {
     gender: 'MALE' as RegisterRequest['gender'],
   });
 
-  readonly authServer = signal<AuthServer | null>(null);
-  readonly authServerError = signal<string>('');
-
   readonly zodErrors = signal<Partial<Record<RegisterFieldName, string>>>({});
 
   readonly usernameExists = signal(false);
@@ -79,7 +76,6 @@ export class RegisterComponent {
   readonly submitDisabled = computed(() => {
     return (
       this.submitting() ||
-      !!this.authServerError() ||
       Object.keys(this.zodErrors()).length > 0 ||
       this.usernameExists() ||
       this.emailExists() ||
@@ -88,7 +84,6 @@ export class RegisterComponent {
   });
 
   constructor() {
-    this.resolveAuthServer();
     this.validateForm();
     this.bindFormValidation();
     this.bindAvailabilityChecks();
@@ -101,12 +96,6 @@ export class RegisterComponent {
   submit(): void {
     this.validateForm();
 
-    const authServer = this.authServer();
-    if (!authServer) {
-      this.authServerError.set('Auth server is required. Visit /register/local or /register/remote.');
-      return;
-    }
-
     if (this.submitDisabled()) {
       return;
     }
@@ -115,7 +104,7 @@ export class RegisterComponent {
     this.submitMessage.set('');
 
     this.registerService
-      .register(authServer, this.form.getRawValue())
+      .register( this.form.getRawValue())
       .pipe(finalize(() => this.submitting.set(false)))
       .subscribe({
         next: (res) => {
@@ -125,24 +114,6 @@ export class RegisterComponent {
           this.submitMessage.set('');
         },
       });
-  }
-
-  private resolveAuthServer(): void {
-    const serverFromRoute = this.route.snapshot.paramMap.get('authServer');
-
-    if (isAuthServer(serverFromRoute)) {
-      setStoredAuthServer(serverFromRoute);
-      this.authServer.set(serverFromRoute);
-      return;
-    }
-
-    const serverFromStorage = getStoredAuthServer();
-    if (serverFromStorage) {
-      this.authServer.set(serverFromStorage);
-      return;
-    }
-
-    this.authServerError.set('Auth server is not selected. Use /register/local or /register/remote.');
   }
 
   private bindFormValidation(): void {
@@ -163,18 +134,13 @@ export class RegisterComponent {
         debounceTime(500),
         distinctUntilChanged(),
         switchMap((value) => {
-          const authServer = this.authServer();
-          if (!authServer || !this.canCheck(field, value)) {
-            this.setExistsState(field, false);
-            return of(false);
-          }
-
-          return this.registerService.checkAuthFieldExists(authServer, field, value);
+          return this.registerService.checkAuthFieldExists(this.authServer  , field, value);
         }),
         takeUntilDestroyed()
       )
       .subscribe((exists) => this.setExistsState(field, exists));
   }
+  
 
   private bindPhoneAvailabilityCheck(): void {
     this.form.controls.phoneNumber.valueChanges

@@ -1,13 +1,6 @@
 <div [class]="ui.pageWrapper">
   <section [class]="ui.card">
     <h1 [class]="ui.sectionTitle">Register account</h1>
-    <p [class]="ui.sectionDescription">
-      Selected auth server: <span class="font-semibold">{{ authServer() ?? 'not selected' }}</span>
-    </p>
-
-    @if (authServerError()) {
-      <p [class]="ui.errorText + ' mt-2'">{{ authServerError() }}</p>
-    }
 
     <form class="mt-6" [formGroup]="form" (ngSubmit)="submit()">
       <div [class]="ui.formGrid">
@@ -93,16 +86,18 @@
             <p [class]="ui.errorText">{{ fieldError('gender') }}</p>
           }
         </div>
-      </div>
-
-      <button [class]="ui.buttonPrimary + ' mt-6 w-full sm:w-auto'" type="submit" [disabled]="submitDisabled()">
+        
+        <button [class]="ui.buttonPrimary + ' mt-6 w-full sm:w-auto'" type="submit" [disabled]="submitDisabled()">
         {{ submitting() ? 'Submitting...' : 'Register' }}
-      </button>
-
+        </button>
+      </div>
       @if (submitMessage()) {
         <p [class]="ui.successText">{{ submitMessage() }}</p>
       }
     </form>
+
+      
+    <a [className]="ui.center"   routerLink="/login"> Already had an account?</a>
 
     <button (click)="logAccessToken()">
         log access token 

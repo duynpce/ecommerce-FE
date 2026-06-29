@@ -10,10 +10,9 @@ export class RegisterService {
 	private readonly http = inject(HttpClient);
 
 	register(
-		authServer: AuthServer,
 		payload: RegisterRequest
 	): Observable<ResponseDto<string>> {
-		return this.http.post<ResponseDto<string>>(`/v1/auth/${authServer}/register`, payload, {
+		return this.http.post<ResponseDto<string>>(`/v1/auth/local/register`, payload, {
 			context: new HttpContext().set(TOAST_ON_SUCCESS, true),
 		});
 	}
@@ -24,35 +23,18 @@ export class RegisterService {
 		value: string
 	): Observable<boolean> {
 		return this.http
-			.get<ResponseDto<boolean> | ResponseDto<{ exists: boolean }> | { exists: boolean }>(
-				`/v1/auth/${authServer}/${paramName}/${encodeURIComponent(value)}`
+			.get<ResponseDto<boolean>>(
+				`/v1/auth/local/${paramName}/${encodeURIComponent(value)}`
 			)
-			.pipe(map((res) => this.normalizeExists(res)));
+			.pipe(map((res) => res.data ?? false));
 	}
 
 	checkUserFieldExists(paramName: 'phoneNumber', value: string): Observable<boolean> {
 		return this.http
-			.get<ResponseDto<boolean> | ResponseDto<{ exists: boolean }> | { exists: boolean }>(
+			.get<ResponseDto<boolean>>(
 				`/v1/users/${paramName}/${encodeURIComponent(value)}`
 			)
-			.pipe(map((res) => this.normalizeExists(res)));
+			.pipe(map((res) => res.data ?? false));
 	}
 
-	private normalizeExists(
-		res: ResponseDto<boolean> | ResponseDto<{ exists: boolean }> | { exists: boolean }
-	): boolean {
-		if ('data' in res) {
-			if (typeof res.data === 'boolean') {
-				return res.data;
-			}
-
-			if (res.data && typeof res.data === 'object' && 'exists' in res.data) {
-				return Boolean(res.data.exists);
-			}
-
-			return false;
-		}
-
-		return Boolean(res.exists);
-	}
 }
