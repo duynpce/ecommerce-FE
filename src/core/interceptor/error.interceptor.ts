@@ -7,30 +7,23 @@ import {
 import { inject } from "@angular/core";
 import { Router } from "@angular/router";
 import { ToastrService } from "ngx-toastr";
-import { BehaviorSubject, EMPTY, Observable, throwError } from "rxjs";
+import { BehaviorSubject, Observable, throwError } from "rxjs";
 import { catchError, filter, switchMap, take } from "rxjs/operators";
 import { environment } from "../../environments/environment";
-import { TokenService } from "../token.service";
 import { clearStoredAuthServer, getStoredAuthServer } from "../../feat/auth/auth.type";
 import type { ResponseDto } from "../../shared/dto/response.dto";
-import type { TokenResponse } from "../../feat/auth/auth.type";
 
-// ─── Context tokens (thay thế cho skipGlobalErrorHandler trong axios config) ──
 export const SKIP_GLOBAL_ERROR_HANDLER = new HttpContextToken<boolean>(() => false);
 
-// ─── Refresh token state ──────────────────────────────────────────────────────
-// Dùng module-level variable để share state giữa các request concurrent
-let isRefreshing = false;
-const refreshToken$ = new BehaviorSubject<string | null>(null);
+let isRefreshing = new BehaviorSubject<boolean>(false);
+const refreshDone$ = new BehaviorSubject<boolean | null>(null);
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const toastr = inject(ToastrService);
   const router = inject(Router);
   const http = inject(HttpClient);
-  const tokenService = inject(TokenService);
 
-  // Skip global error handling for refresh request itself to avoid loops.
-  if (/\/v1\/auth\/(local|remote)\/refresh$/.test(req.url)) {
+  if (req.url.includes('/auth/local/refresh') || req.url.includes('/auth/remote/refresh')) {
     return next(req);
   }
 
@@ -40,7 +33,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
-      return handleError(error, req, next, toastr, router, http, tokenService);
+      return handleError(error, req, next, toastr, router, http);
     })
   );
 };
@@ -51,18 +44,18 @@ function handleError(
   next: any,
   toastr: ToastrService,
   router: Router,
-  http: HttpClient,
-  tokenService: TokenService
+  http: HttpClient
 ): Observable<any> {
 
   if (error.status === 401) {
-    return handle401(error, req, next, toastr, router, http, tokenService);
+    return handle401(error, req, next, toastr, router, http);
   }
 
   if (error.status === 403 && !error.error?.message) {
     toastr.error("You don't have permission to access this resource.", undefined, {
       toastClass: "forbidden-error",
     });
+    router.navigate(["/home"]);
     return throwError(() => error);
   }
 
@@ -95,65 +88,57 @@ function handle401(
   toastr: ToastrService,
   router: Router,
   http: HttpClient,
-  tokenService: TokenService
 ): Observable<any> {
+
+  if (isRefreshing.value) {
   
-  if (isRefreshing) {
-    return refreshToken$.pipe(
-      filter((token): token is string => token !== null),
+    return refreshDone$.pipe(
+      filter((done) => done !== null),
       take(1),
-      switchMap((token) =>
-        next(req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }))
-      )
+      switchMap((success) => {
+        if (success) {
+
+          return next(req.clone({ withCredentials: true }));
+        }
+        return throwError(() => error);
+      })
     );
   }
 
   const authServer = getStoredAuthServer();
 
   if (!authServer) {
-    handleSessionExpired(toastr, router, tokenService);
+    handleSessionExpired(toastr, router);
     return throwError(() => error);
   }
 
-  isRefreshing = true;
-  refreshToken$.next(null);
+  isRefreshing.next(true);
+  refreshDone$.next(null); 
 
   return http
-    .post<ResponseDto<TokenResponse>>(
-      `${environment.ROOT_API_URL}/v1/auth/${authServer}/refresh`,
+    .post<ResponseDto<Set<string>>>(
+      `/v1/auth/${authServer}/refresh`,
       null,
       { withCredentials: true }
     )
     .pipe(
       switchMap((res) => {
-        const accessToken = res.data?.accessToken;
-  
-        if (!accessToken) {
-          throw new Error("Refresh did not return access token");
-        }
-
-        isRefreshing = false;
-        tokenService.set(accessToken);
-
-        refreshToken$.next(accessToken);
-        return next(
-          req.clone({ setHeaders: { Authorization: `Bearer ${accessToken}` } })
-        );
+        isRefreshing.next(false);
+        refreshDone$.next(true); 
+        return next(req.clone({ withCredentials: true })); 
       }),
       catchError((refreshError) => {
-        isRefreshing = false;
-        handleSessionExpired(toastr, router, tokenService);
-        return EMPTY;
+        isRefreshing.next(false);
+        refreshDone$.next(false); 
+        handleSessionExpired(toastr, router);
+        return throwError(() => refreshError);
       })
     );
 }
 
-// ─── Xử lý session hết hạn ───────────────────────────────────────────────────
-function handleSessionExpired(toastr: ToastrService, router: Router, tokenService: TokenService): void {
-  tokenService.set(null);
+function handleSessionExpired(toastr: ToastrService, router: Router): void {
   clearStoredAuthServer();
   sessionStorage.setItem("previousPath", window.location.pathname);
   toastr.error("Session expired or not logged in");
-
   setTimeout(() => router.navigate(["/login"]), 2000);
 }

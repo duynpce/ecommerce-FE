@@ -23,4 +23,6 @@ export const UI_CLASS_NAME = {
   buttonDanger:
     'inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50',
   center: 'flex items-center justify-center',
+   radioOption:
+    'flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer',
 } as const;

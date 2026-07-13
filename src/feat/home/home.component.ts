@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { ToastrService } from "ngx-toastr";
+import { AuthService } from "../auth/auth.service";
 
 
 @Component({
@@ -8,9 +9,25 @@ import { ToastrService } from "ngx-toastr";
   templateUrl: './home.component.html',
 })
 export class HomeComponent {
-  constructor(private toastService: ToastrService) {}
+  private readonly toastService = inject(ToastrService);
+  private readonly authService = inject(AuthService);
+  
   testToastr():void {
     this.toastService.success('This is a success message!', 'Success');
   }
+
+  testAuthService(): void {
+    this.authService.isLoggedIn().subscribe({
+      next: (isLoggedIn) => {
+        if (isLoggedIn) {
+          this.toastService.success('User is logged in.', 'Auth Status');
+        }
+        else {
+          this.toastService.warning('User is not logged in.', 'Auth Status');
+        } 
+      }
+    });
+  }
+  
 
 }

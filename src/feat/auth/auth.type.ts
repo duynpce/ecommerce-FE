@@ -26,6 +26,11 @@ export interface RegisterRequest {
   gender: Gender;
 }
 
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
 export const isAuthServer = (value: string | null | undefined): value is AuthServer => {
   return !!value && AUTH_SERVERS.includes(value as AuthServer);
 };
