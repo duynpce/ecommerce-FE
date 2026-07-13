@@ -1,0 +1,62 @@
+<!-- Top navbar — sticky, white, slate-200 border -->
+<header class="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
+
+  <!-- 3px red accent line at the very top -->
+  <div class="h-[3px] bg-red-600"></div>
+
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
+
+    <!-- Brand / Logo -->
+    <a href="/" class="inline-flex items-center gap-2 no-underline">
+      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white">
+        <!-- Lock icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </span>
+      <span class="text-[15px] font-bold tracking-tight text-slate-900">AuthPortal</span>
+    </a>
+
+    <!-- Right-side controls -->
+    <nav class="flex items-center gap-2">
+      @if (isAuthenticated()) {
+
+        <!-- Account button -->
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          (click)="navigateToProfile()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+          Account
+        </button>
+
+        <!-- Logout — reuses your existing LogoutButtonComponent -->
+        <app-logout-button />
+
+      } @else {
+
+        <!-- Sign in -->
+        <button
+          type="button"
+          class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          (click)="navigateToLogin()"
+        >
+          Sign in
+        </button>
+
+      }
+    </nav>
+  </div>
+</header>
+
+<!-- Page content — each child page owns its own padding/bg -->
+<main class="min-h-[calc(100vh-57px)] bg-slate-100">
+  <router-outlet />
+</main>
