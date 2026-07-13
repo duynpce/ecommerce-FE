@@ -9,7 +9,7 @@ import {
   FormBuilder,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import {  Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   debounceTime,
@@ -34,7 +34,6 @@ import {
   type RegisterFieldName,
 } from './register.type';
 import { ToastrService } from 'ngx-toastr';
-import { TokenService } from '../../../core/token.service';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
@@ -47,9 +46,9 @@ export class RegisterComponent {
   private readonly fb = inject(FormBuilder);
   private readonly registerService = inject(RegisterService);
   private readonly toastr = inject(ToastrService);
-  private readonly tokenService = inject(TokenService);
   private readonly http = inject(HttpClient);
   private readonly authServer = "local";
+  private readonly router = inject(Router);
 
   readonly ui = UI_CLASS_NAME;
 
@@ -109,6 +108,7 @@ export class RegisterComponent {
       .subscribe({
         next: (res) => {
           this.submitMessage.set(res.message ?? 'Registration completed successfully.');
+          this.router.navigate(['/login']);
         },
         error: () => {
           this.submitMessage.set('');
@@ -153,7 +153,7 @@ export class RegisterComponent {
             return of(false);
           }
 
-          return this.registerService.checkUserFieldExists('phoneNumber', value);
+          return this.registerService.checkUserFieldExists('phone-number', value);
         }),
         takeUntilDestroyed()
       )
@@ -198,18 +198,5 @@ export class RegisterComponent {
     this.zodErrors.set(errors);
   }
 
-  logAccessToken(): void {
-    this.toastr.info(`Access Token: ${this.tokenService.get()}`);
-  }
 
-  try401(): void {
-    this.http.get('/v1/auth/local/test-auth').subscribe({
-      next: (response) => {
-        console.log('Response:', response);
-      },
-      error: (error) => {
-        console.error('Error:', error);
-      }
-    });
-  }
 }

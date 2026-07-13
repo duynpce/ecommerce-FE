@@ -29,10 +29,10 @@ export class RegisterService {
 			.pipe(map((res) => res.data ?? false));
 	}
 
-	checkUserFieldExists(paramName: 'phoneNumber', value: string): Observable<boolean> {
+	checkUserFieldExists(paramName: 'phone-number', value: string): Observable<boolean> {
 		return this.http
 			.get<ResponseDto<boolean>>(
-				`/v1/users/${paramName}/${encodeURIComponent(value)}`
+				`/v1/users/accounts/${paramName}/${encodeURIComponent(value)}`
 			)
 			.pipe(map((res) => res.data ?? false));
 	}

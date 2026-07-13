@@ -59,6 +59,8 @@ export class LogoutButtonComponent {
         next: () => {
           this.modalOpen.set(false);
           this.router.navigate(['/home']);
+          localStorage.removeItem('roles');
+          localStorage.removeItem('isLoggedIn');
           this.loggedOut.emit();
         },
         error: () => {
