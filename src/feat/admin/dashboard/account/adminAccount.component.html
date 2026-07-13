@@ -1,0 +1,126 @@
+<div [class]="ui.pageWrapper">
+  <section [class]="ui.card">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <h1 [class]="ui.sectionTitle">Accounts</h1>
+      <button [class]="ui.buttonPrimary" type="button" (click)="openExportModal()">
+        Export
+      </button>
+    </div>
+
+    <form class="mt-6" [formGroup]="filterForm">
+      <div [class]="ui.formGrid">
+        <div>
+          <label [class]="ui.label" for="firstName">First name</label>
+          <input id="firstName" [class]="ui.input" formControlName="firstName" type="text" />
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="lastName">Last name</label>
+          <input id="lastName" [class]="ui.input" formControlName="lastName" type="text" />
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="phoneNumber">Phone number</label>
+          <input id="phoneNumber" [class]="ui.input" formControlName="phoneNumber" type="text" />
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="gender">Gender</label>
+          <select id="gender" [class]="ui.select" formControlName="gender">
+            <option value="">All</option>
+            <option value="MALE">MALE</option>
+            <option value="FEMALE">FEMALE</option>
+            <option value="OTHER">OTHER</option>
+          </select>
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="createdFrom">Created from</label>
+          <input id="createdFrom" [class]="ui.input" formControlName="createdFrom" type="date" />
+        </div>
+
+        <div>
+          <label [class]="ui.label" for="createdTo">Created to</label>
+          <input id="createdTo" [class]="ui.input" formControlName="createdTo" type="date" />
+        </div>
+      </div>
+    </form>
+
+    @if (loadError()) {
+      <p [class]="ui.dangerText">{{ loadError() }}</p>
+    }
+
+    <div class="mt-6 overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead>
+          <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <th class="py-2 pr-4">Id</th>
+            <th class="py-2 pr-4">Full name</th>
+            <th class="py-2 pr-4">Phone number</th>
+            <th class="py-2 pr-4">Address</th>
+            <th class="py-2 pr-4">Gender</th>
+            <th class="py-2 pr-4">Created at</th>
+            <th class="py-2 pr-4">Updated at</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          @for (account of accounts(); track account.id) {
+            <tr>
+              <td class="py-2 pr-4">{{ account.id }}</td>
+              <td class="py-2 pr-4 font-medium text-slate-900">{{ account.firstName }} {{ account.lastName }}</td>
+              <td class="py-2 pr-4">{{ account.phoneNumber }}</td>
+              <td class="py-2 pr-4">{{ account.address }}</td>
+              <td class="py-2 pr-4">{{ account.gender }}</td>
+              <td class="py-2 pr-4">{{ account.createdAt | date: 'short' }}</td>
+              <td class="py-2 pr-4">{{ account.updatedAt | date: 'short' }}</td>
+            </tr>
+          }
+          @if (!loading() && !hasAccounts()) {
+            <tr>
+              <td class="py-6 text-center text-slate-500" colspan="6">No accounts found.</td>
+            </tr>
+          }
+          @if (loading()) {
+            <tr>
+              <td class="py-6 text-center text-slate-500" colspan="6">Loading accounts...</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 flex items-center justify-between text-sm text-slate-600">
+      <span>{{ totalItems() }} account(s)</span>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          [class]="ui.buttonSecondary"
+          [disabled]="page() <= 1"
+          (click)="onPageChange(page() - 1)"
+        >
+          Previous
+        </button>
+        <span>Page {{ page() }} / {{ totalPages() }}</span>
+        <button
+          type="button"
+          [class]="ui.buttonSecondary"
+          [disabled]="page() >= totalPages()"
+          (click)="onPageChange(page() + 1)"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+
+    @if (exportError()) {
+      <p [class]="ui.dangerText">{{ exportError() }}</p>
+    }
+  </section>
+
+  <app-export-accounts-modal
+    [isOpen]="exportModalOpen()"
+    [busy]="exporting()"
+    (confirm)="onExportConfirm($event)"
+    (cancel)="onExportCancel()"
+  />
+</div>

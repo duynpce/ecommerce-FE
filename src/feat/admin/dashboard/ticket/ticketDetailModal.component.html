@@ -1,0 +1,127 @@
+@if (isOpen() && ticket(); as t) {
+  <!-- Backdrop -->
+  <div
+    class="fixed inset-0 z-40 bg-slate-900/50"
+    (click)="close.emit()"
+  ></div>
+
+  <!-- Modal -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div
+      class="w-full max-w-lg rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Ticket Details"
+    >
+
+      <!-- Modal header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <div>
+          <h2 class="text-base font-semibold text-slate-900">Ticket Details</h2>
+          <p class="text-xs text-slate-400 font-mono mt-0.5">{{ t.ticketId }}</p>
+        </div>
+
+        <!-- Status badge -->
+        <div class="flex items-center gap-3">
+          <span
+            class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+            [class.bg-yellow-100]="t.status === 'PENDING'"
+            [class.text-yellow-700]="t.status === 'PENDING'"
+            [class.bg-green-100]="t.status === 'APPROVED'"
+            [class.text-green-700]="t.status === 'APPROVED'"
+            [class.bg-red-100]="t.status === 'REJECTED'"
+            [class.text-red-700]="t.status === 'REJECTED'"
+          >
+            {{ t.status }}
+          </span>
+
+          <!-- Close button -->
+          <button
+            type="button"
+            (click)="close.emit()"
+            class="rounded-lg p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            aria-label="Close"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal body -->
+      <div class="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+
+        <!-- Section: Submission Info -->
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Submission Info</p>
+          <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <dt class="text-slate-500">Submitted by (User ID)</dt>
+              <dd class="font-mono text-xs text-slate-700 mt-0.5 break-all">{{ t.userId }}</dd>
+            </div>
+            <div>
+              <dt class="text-slate-500">Submitted at</dt>
+              <dd class="text-slate-700 mt-0.5">{{ t.createdAt | date:'dd MMM yyyy, HH:mm' }}</dd>
+            </div>
+            <div>
+              <dt class="text-slate-500">Identity Card No.</dt>
+              <dd class="text-slate-700 mt-0.5">{{ t.identityCardNumber }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="border-t border-slate-100"></div>
+
+        <!-- Section: Business Info -->
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Business Info</p>
+          <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <dt class="text-slate-500">Shop Name</dt>
+              <dd class="text-slate-700 mt-0.5">{{ t.shopName }}</dd>
+            </div>
+            <div>
+              <dt class="text-slate-500">Tax ID</dt>
+              <dd class="text-slate-700 mt-0.5">{{ t.taxId }}</dd>
+            </div>
+            <div class="col-span-2">
+              <dt class="text-slate-500">Delivery Address</dt>
+              <dd class="text-slate-700 mt-0.5">{{ t.deliveryAddress }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="border-t border-slate-100"></div>
+
+        <!-- Section: Banking Info -->
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Banking Info</p>
+          <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <dt class="text-slate-500">Bank Name</dt>
+              <dd class="text-slate-700 mt-0.5">{{ t.bankName }}</dd>
+            </div>
+            <div>
+              <dt class="text-slate-500">Account Number</dt>
+              <dd class="text-slate-700 mt-0.5">{{ t.bankAccountNumber }}</dd>
+            </div>
+          </dl>
+        </div>
+
+      </div>
+
+      <!-- Modal footer -->
+      <div class="px-6 py-4 border-t border-slate-200 flex justify-end">
+        <button
+          type="button"
+          [class]="ui.buttonSecondary"
+          (click)="close.emit()"
+        >
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

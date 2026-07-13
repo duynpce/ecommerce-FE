@@ -1,0 +1,101 @@
+import { Routes } from '@angular/router';
+import { adminGuard } from '../core/router-guard/adminGuard';
+
+export const routes: Routes = [
+  // ── Auth pages — NO shell layout ────────────────────────────────────────
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('../feat/auth/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('../feat/auth/register/register.component').then(
+        (m) => m.RegisterComponent,
+      ),
+  },
+  {
+    path: 'callback/:authServer',
+    loadComponent: () =>
+      import('../feat/auth/callback/callback.component').then(
+        (m) => m.CallbackComponent,
+      ),
+  },
+
+  // ── Shell layout — wraps all other pages ────────────────────────────────
+  {
+    path: '',
+    loadComponent: () =>
+      import('../layout/shell.component').then((m) => m.ShellComponent),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'home',
+      },
+      {
+        path: 'home',
+        loadComponent: () =>
+          import('../feat/home/home.component').then((m) => m.HomeComponent),
+      },
+      {
+        path: 'logout',
+        loadComponent: () =>
+          import('../feat/auth/logout/logout.component').then(
+            (m) => m.LogoutComponent,
+          ),
+      },
+      {
+        path: 'logout/:authServer',
+        loadComponent: () =>
+          import('../feat/auth/logout/logout.component').then(
+            (m) => m.LogoutComponent,
+          ),
+      },
+      {
+        path: 'tickets/apply',
+        loadComponent: () =>
+          import('../feat/user/userTicket.component').then(
+            (m) => m.UserTicketComponent,
+          ),
+      },
+      // {
+      //   path: 'profile',
+      //   // placeholder — page not yet implemented
+      //   loadComponent: () =>
+      //     import('../feat/profile/profile.component').then(
+      //       (m) => m.ProfileComponent,
+      //     ),
+      // },
+
+      // ── Admin routes — protected by adminGuard ──────────────────────────
+      {
+        path: 'admin',
+        canActivate: [adminGuard],
+        children: [
+          {
+            path: 'account',
+            loadComponent: () =>
+              import('../feat/admin/dashboard/account/adminAccount.component').then(
+                (m) => m.AdminAccountComponent,
+              ),
+          },
+          {
+            path: 'tickets',
+            loadComponent: () =>
+              import('../feat/admin/dashboard/ticket/adminTicket.component').then(
+                (m) => m.AdminTicketComponent,
+              ),
+          },
+        ],
+      },
+    ],
+  },
+
+  // ── Fallback ─────────────────────────────────────────────────────────────
+  {
+    path: '**',
+    redirectTo: 'home',
+  },
+];

@@ -1,0 +1,14 @@
+<section [class]="ui.card" class="mx-auto mt-10">
+  <h1 [class]="ui.sectionTitle">Logout</h1>
+  <p [class]="ui.sectionDescription">
+    Selected auth server: <span class="font-semibold">{{ authServer() ?? 'not selected' }}</span>
+  </p>
+
+  @if (authServerError()) {
+    <p [class]="ui.errorText + ' mt-2'">{{ authServerError() }}</p>
+  }
+
+  <div class="mt-6">
+    <app-logout-button [authServer]="authServer()" />
+  </div>
+</section>
