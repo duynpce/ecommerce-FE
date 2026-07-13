@@ -1,0 +1,38 @@
+@if (isOpen()) {
+  <div class="fixed inset-0 z-40 bg-slate-900/50" (click)="cancel.emit()"></div>
+  <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div
+      class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Export accounts"
+    >
+      <h2 class="text-lg font-semibold text-slate-900">Export accounts</h2>
+      <p class="mt-2 text-sm text-slate-600">Choose a file type to download the current account list.</p>
+
+      <div class="mt-4 flex flex-col gap-2">
+        @for (fileType of fileTypes; track fileType) {
+          <label [class]="ui.radioOption">
+            <input
+              type="radio"
+              name="exportFileType"
+              [value]="fileType"
+              [checked]="selectedFileType() === fileType"
+              (change)="selectFileType(fileType)"
+            />
+            <span class="uppercase">{{ fileType }}</span>
+          </label>
+        }
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" [class]="ui.buttonSecondary" (click)="cancel.emit()" [disabled]="busy()">
+          Cancel
+        </button>
+        <button type="button" [class]="ui.buttonPrimary" (click)="onConfirm()" [disabled]="busy()">
+          {{ busy() ? 'Preparing file...' : 'Export' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
