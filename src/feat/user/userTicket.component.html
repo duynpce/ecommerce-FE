@@ -1,0 +1,139 @@
+<div [class]="ui.pageWrapper">
+  <div [class]="ui.card" class="max-w-2xl! flex flex-col gap-6">
+
+    <!-- Header -->
+    <div>
+      <h1 [class]="ui.sectionTitle">Apply for Contributor</h1>
+      <p [class]="ui.sectionDescription" class="mt-1">
+        Fill in your details to submit a promotion request.
+      </p>
+    </div>
+
+    <!-- Form -->
+    <form class="flex flex-col gap-4" (ngSubmit)="onSubmit()" [formGroup]="form" novalidate>
+
+    
+      <!-- Identity Card Number -->
+      <div class="flex flex-col gap-1.5">
+        <label for="identityCardNumber" class="text-sm font-medium text-slate-700">Identity Card Number</label>
+        <input
+          id="identityCardNumber"
+          type="text"
+          formControlName="identityCardNumber"
+          placeholder="Enter your identity card number"
+          [class]="ui.input"
+          class="w-full"
+          [class.border-red-400]="isFieldInvalid('identityCardNumber')"
+        />
+        @if (isFieldInvalid('identityCardNumber')) {
+          <p class="text-xs text-red-500">Identity card number is required</p>
+        }
+      </div>
+
+      <!-- Bank Name + Account Number (side by side) -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label for="bankName" class="text-sm font-medium text-slate-700">Bank Name</label>
+          <input
+            id="bankName"
+            type="text"
+            formControlName="bankName"
+            placeholder="e.g. Vietcombank"
+            [class]="ui.input"
+            class="w-full"
+            [class.border-red-400]="isFieldInvalid('bankName')"
+          />
+          @if (isFieldInvalid('bankName')) {
+            <p class="text-xs text-red-500">Bank name is required</p>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label for="bankAccountNumber" class="text-sm font-medium text-slate-700">Bank Account Number</label>
+          <input
+            id="bankAccountNumber"
+            type="text"
+            formControlName="bankAccountNumber"
+            placeholder="Enter your account number"
+            [class]="ui.input"
+            class="w-full"
+            [class.border-red-400]="isFieldInvalid('bankAccountNumber')"
+          />
+          @if (isFieldInvalid('bankAccountNumber')) {
+            <p class="text-xs text-red-500">Account number is required</p>
+          }
+        </div>
+      </div>
+
+      <!-- Shop Name -->
+      <div class="flex flex-col gap-1.5">
+        <label for="shopName" class="text-sm font-medium text-slate-700">Shop Name</label>
+        <input
+          id="shopName"
+          type="text"
+          formControlName="shopName"
+          placeholder="Enter your shop name"
+          [class]="ui.input"
+          class="w-full"
+          [class.border-red-400]="isFieldInvalid('shopName')"
+        />
+        @if (isFieldInvalid('shopName')) {
+          <p class="text-xs text-red-500">Shop name is required</p>
+        }
+      </div>
+
+      <!-- Delivery Address -->
+      <div class="flex flex-col gap-1.5">
+        <label for="deliveryAddress" class="text-sm font-medium text-slate-700">Delivery Address</label>
+        <input
+          id="deliveryAddress"
+          type="text"
+          formControlName="deliveryAddress"
+          placeholder="Enter your delivery address"
+          [class]="ui.input"
+          class="w-full"
+          [class.border-red-400]="isFieldInvalid('deliveryAddress')"
+        />
+        @if (isFieldInvalid('deliveryAddress')) {
+          <p class="text-xs text-red-500">Delivery address is required</p>
+        }
+      </div>
+
+      <!-- Tax ID -->
+      <div class="flex flex-col gap-1.5">
+        <label for="taxId" class="text-sm font-medium text-slate-700">Tax ID</label>
+        <input
+          id="taxId"
+          type="text"
+          formControlName="taxId"
+          placeholder="Enter your tax ID"
+          [class]="ui.input"
+          class="w-full"
+          [class.border-red-400]="isFieldInvalid('taxId')"
+        />
+        @if (isFieldInvalid('taxId')) {
+          <p class="text-xs text-red-500">Tax ID is required</p>
+        }
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        [class]="ui.buttonPrimary"
+        class="w-full mt-2"
+        [disabled]="loading()"
+      >
+        @if (loading()) {
+          <svg class="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+          </svg>
+          Submitting…
+        } @else {
+          Submit Request
+        }
+      </button>
+
+    </form>
+  </div>
+</div>
