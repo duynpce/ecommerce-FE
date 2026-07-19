@@ -1,18 +1,35 @@
-import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
-import { ToastrService } from "ngx-toastr";
-import { AuthService } from "../auth/auth.service";
-
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-home',
+  standalone: true,
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.component.html',
 })
 export class HomeComponent {
   private readonly toastService = inject(ToastrService);
   private readonly authService = inject(AuthService);
-  
-  testToastr():void {
+
+  readonly roles = signal<string[]>(this.readRoles());
+
+  readonly isAdmin = computed(() =>
+    this.roles().includes('ADMIN') || this.roles().includes('SUPER_ADMIN'),
+  );
+
+  private readRoles(): string[] {
+    try {
+      const raw = localStorage.getItem('roles');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  testToastr(): void {
     this.toastService.success('This is a success message!', 'Success');
   }
 
@@ -21,13 +38,10 @@ export class HomeComponent {
       next: (isLoggedIn) => {
         if (isLoggedIn) {
           this.toastService.success('User is logged in.', 'Auth Status');
-        }
-        else {
+        } else {
           this.toastService.warning('User is not logged in.', 'Auth Status');
-        } 
-      }
+        }
+      },
     });
   }
-  
-
 }

@@ -23,7 +23,7 @@ export const routes: Routes = [
       ),
   },
 
-  // ── Shell layout — wraps all other pages ────────────────────────────────
+  // ── Shell layout — wraps home, logout ───────────────────────────────────
   {
     path: '',
     loadComponent: () =>
@@ -53,6 +53,15 @@ export const routes: Routes = [
             (m) => m.LogoutComponent,
           ),
       },
+    ],
+  },
+
+  // ── User layout — wraps user-facing feature pages ───────────────────────
+  {
+    path: 'user',
+    loadComponent: () =>
+      import('../layout/userLayout.component').then((m) => m.UserLayoutComponent),
+    children: [
       {
         path: 'tickets/apply',
         loadComponent: () =>
@@ -60,35 +69,42 @@ export const routes: Routes = [
             (m) => m.UserTicketComponent,
           ),
       },
+      // Add more user pages here as needed
       // {
       //   path: 'profile',
-      //   // placeholder — page not yet implemented
       //   loadComponent: () =>
       //     import('../feat/profile/profile.component').then(
       //       (m) => m.ProfileComponent,
       //     ),
       // },
+    ],
+  },
 
-      // ── Admin routes — protected by adminGuard ──────────────────────────
+  // ── Admin layout — protected by adminGuard, with sidebar nav ────────────
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('../layout/adminLayout.component').then((m) => m.AdminLayoutComponent),
+    children: [
       {
-        path: 'admin',
-        canActivate: [adminGuard],
-        children: [
-          {
-            path: 'account',
-            loadComponent: () =>
-              import('../feat/admin/dashboard/account/adminAccount.component').then(
-                (m) => m.AdminAccountComponent,
-              ),
-          },
-          {
-            path: 'tickets',
-            loadComponent: () =>
-              import('../feat/admin/dashboard/ticket/adminTicket.component').then(
-                (m) => m.AdminTicketComponent,
-              ),
-          },
-        ],
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'account',
+      },
+      {
+        path: 'account',
+        loadComponent: () =>
+          import('../feat/admin/dashboard/account/adminAccount.component').then(
+            (m) => m.AdminAccountComponent,
+          ),
+      },
+      {
+        path: 'tickets',
+        loadComponent: () =>
+          import('../feat/admin/dashboard/ticket/adminTicket.component').then(
+            (m) => m.AdminTicketComponent,
+          ),
       },
     ],
   },
