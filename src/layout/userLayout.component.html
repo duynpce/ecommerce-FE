@@ -1,0 +1,50 @@
+<div class="min-h-screen flex flex-col bg-slate-50">
+
+  <!-- Top navbar -->
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-6 shrink-0">
+
+    <!-- Brand / home link -->
+    <a routerLink="/home" class="text-sm font-semibold tracking-wide text-slate-800 hover:text-slate-600 transition-colors select-none">
+      My Account
+    </a>
+
+    <div class="w-px h-5 bg-slate-200 shrink-0"></div>
+
+    <!-- Nav links -->
+    <nav class="flex items-center gap-1">
+      <a
+        routerLink="/tickets/apply"
+        routerLinkActive="text-slate-900 font-medium bg-slate-100"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+      >
+        <!-- Ticket icon -->
+        <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z" />
+        </svg>
+        Apply for Contributor
+      </a>
+    </nav>
+
+    <!-- Spacer -->
+    <div class="flex-1"></div>
+
+    <!-- Back to home -->
+    <a
+      routerLink="/home"
+      class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+      </svg>
+      Home
+    </a>
+
+  </header>
+
+  <!-- Page content -->
+  <main class="flex-1">
+    <router-outlet />
+  </main>
+
+</div>
