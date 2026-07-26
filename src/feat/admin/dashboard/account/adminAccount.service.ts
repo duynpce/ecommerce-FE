@@ -15,7 +15,7 @@ export class AdminAccountService {
 
   /** user-service: GET /accounts/report — paginated account list for the admin dashboard */
   getAccounts(query: AccountReportQuery): Observable<ResponseDto<Account[]>> {
-    return this.http.get<ResponseDto<Account[]>>('/v1/users/accounts/report', {
+    return this.http.get<ResponseDto<Account[]>>('/v1/users/account-profiles/report', {
       params: this.buildFilterParams(query),
     });
   }
@@ -24,7 +24,7 @@ export class AdminAccountService {
   exportAccounts(request: ExportAccountsRequest): Observable<Blob> {
     const params = this.buildFilterParams(request).set('exportFileName', request.exportFileName);
 
-    return this.http.get('/v1/reports/accounts/export', {
+    return this.http.get('/v1/reports/account-profiles/export', {
       params,
       responseType: 'blob',
       context: new HttpContext().set(TOAST_ON_SUCCESS, false),

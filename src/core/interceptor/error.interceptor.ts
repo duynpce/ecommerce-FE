@@ -66,6 +66,20 @@ function handleError(
     return throwError(() => error);
   }
 
+  if(error.status === 500) {
+    toastr.error("Internal server error. Please try again later.", undefined, {
+      toastClass: "server-error",
+    });
+    return throwError(() => error);
+  }
+
+  if(error.status === 413) {
+    toastr.error("your files was too large. Please try again.", undefined, {
+      toastClass: "payload-too-large-error",
+    });
+    return throwError(() => error);
+  }
+
   if (error.status === 0) {
     toastr.error("Please check your connection.", undefined, {
       toastClass: "network-error",

@@ -1,0 +1,63 @@
+@if (totalPages() > 0) {
+  <nav
+    role="navigation"
+    aria-label="Pagination"
+    class="flex items-center justify-center gap-1 select-none"
+  >
+
+    <!-- Previous -->
+    <button
+      type="button"
+      [disabled]="isFirst()"
+      (click)="prev()"
+      aria-label="Previous page"
+      class="inline-flex items-center justify-center h-9 w-9 rounded-lg border text-sm font-medium transition-colors
+             border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300
+             disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-500 disabled:hover:border-slate-200"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+      </svg>
+    </button>
+
+    <!-- Page tokens -->
+    @for (token of pageTokens(); track $index) {
+      @if (token === null) {
+        <!-- Ellipsis -->
+        <span class="inline-flex items-center justify-center h-9 w-9 text-sm text-slate-400 cursor-default">
+          &hellip;
+        </span>
+      } @else {
+        <button
+          type="button"
+          [disabled]="token === currentPage()"
+          (click)="go(token)"
+          [attr.aria-label]="'Page ' + (token + 1)"
+          [attr.aria-current]="token === currentPage() ? 'page' : null"
+          [class]="'inline-flex items-center justify-center h-9 min-w-9 px-2 rounded-lg border text-sm font-medium transition-colors '
+            + (token === currentPage()
+                ? 'border-slate-800 bg-slate-800 text-white cursor-default'
+                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300')"
+        >
+          {{ token + 1 }}
+        </button>
+      }
+    }
+
+    <!-- Next -->
+    <button
+      type="button"
+      [disabled]="isLast()"
+      (click)="next()"
+      aria-label="Next page"
+      class="inline-flex items-center justify-center h-9 w-9 rounded-lg border text-sm font-medium transition-colors
+             border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300
+             disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-500 disabled:hover:border-slate-200"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+      </svg>
+    </button>
+
+  </nav>
+}
