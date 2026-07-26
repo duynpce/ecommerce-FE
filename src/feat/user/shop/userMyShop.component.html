@@ -1,0 +1,330 @@
+<div [class]="ui.pageWrapper">
+
+  <!-- ── Role warning ──────────────────────────────────────────────────────── -->
+  @if (!isContributor()) {
+    <div class="mx-auto w-full max-w-2xl py-12 text-center">
+      <div class="rounded-2xl bg-amber-50 ring-1 ring-amber-200 p-8 shadow-sm">
+        <svg class="w-12 h-12 text-amber-500 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <h2 class="text-lg font-bold text-amber-900">Contributor Role Required</h2>
+        <p class="text-sm text-amber-700 mt-1">
+          You need the <strong>CONTRIBUTOR</strong> role in your profile to view or create shops.
+        </p>
+      </div>
+    </div>
+
+  <!-- ── Loading ───────────────────────────────────────────────────────────── -->
+  } @else if (loading()) {
+    <div [class]="ui.center" class="py-24">
+      <svg class="animate-spin h-8 w-8 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+      </svg>
+    </div>
+
+  <!-- ── Main content ───────────────────────────────────────────────────────── -->
+  } @else {
+    <div class="mx-auto w-full max-w-3xl">
+
+      <!-- Page header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 [class]="ui.sectionTitle">My Shops</h1>
+          <p [class]="ui.sectionDescription">
+            @if (shops().length > 0) {
+              You have {{ shops().length }} shop{{ shops().length > 1 ? 's' : '' }}.
+            } @else {
+              You don't have any shops yet. Create one to start selling!
+            }
+          </p>
+        </div>
+        <button [class]="ui.buttonPrimary" (click)="toggleCreateForm()">
+          @if (showCreateForm()) {
+            Cancel
+          } @else {
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            New Shop
+          }
+        </button>
+      </div>
+
+      <!-- ── Create form (collapsible) ─────────────────────────────────────── -->
+      @if (showCreateForm()) {
+        <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-6 sm:p-8 mb-6">
+          <h2 class="text-lg font-bold text-slate-900 mb-5">Create a New Shop</h2>
+
+          <form [formGroup]="createForm" (ngSubmit)="onCreateSubmit()" novalidate class="flex flex-col gap-5">
+
+            <!-- Logo upload -->
+            <div class="flex flex-col gap-1.5">
+              <label [class]="ui.label">Shop Logo <span class="text-xs text-slate-400">(optional)</span></label>
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-xl ring-1 ring-slate-200 bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
+                  @if (logoPreviewMap['create']) {
+                    <img [src]="logoPreviewMap['create']" class="w-full h-full object-cover" alt="Logo preview" />
+                  } @else {
+                    <svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                    </svg>
+                  }
+                </div>
+                <label class="cursor-pointer">
+                  <span [class]="ui.buttonSecondary" class="text-xs!">Upload logo</span>
+                  <input type="file" accept="image/*" class="hidden" (change)="onLogoChange($event, 'create')" />
+                </label>
+              </div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <!-- Name -->
+              <div class="flex flex-col gap-1 sm:col-span-2">
+                <label [class]="ui.label">Shop Name <span class="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  formControlName="name"
+                  placeholder="e.g. My Awesome Shop"
+                  [class]="ui.input"
+                  [class.border-red-400]="isCreateFieldInvalid('name')"
+                />
+                @if (isCreateFieldInvalid('name')) { <p [class]="ui.errorText">Shop name is required.</p> }
+              </div>
+
+              <!-- Description -->
+              <div class="flex flex-col gap-1 sm:col-span-2">
+                <label [class]="ui.label">Description <span class="text-xs text-slate-400">(optional)</span></label>
+                <textarea formControlName="description" rows="2" placeholder="Tell customers about your shop…" [class]="ui.input" class="resize-none"></textarea>
+              </div>
+
+              <!-- Address -->
+              <div class="flex flex-col gap-1">
+                <label [class]="ui.label">Street</label>
+                <input type="text" formControlName="street" placeholder="123 Main St" [class]="ui.input" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label [class]="ui.label">Ward</label>
+                <input type="text" formControlName="ward" placeholder="Ward" [class]="ui.input" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label [class]="ui.label">District</label>
+                <input type="text" formControlName="district" placeholder="District" [class]="ui.input" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label [class]="ui.label">City</label>
+                <input type="text" formControlName="city" placeholder="City" [class]="ui.input" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label [class]="ui.label">Country</label>
+                <input type="text" formControlName="country" placeholder="Country" [class]="ui.input" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label [class]="ui.label">Zip Code</label>
+                <input type="text" formControlName="zipCode" placeholder="00000" [class]="ui.input" />
+              </div>
+            </div>
+
+            <button type="submit" [class]="ui.buttonPrimary" class="w-full mt-2" [disabled]="saving()">
+              @if (saving()) {
+                <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+                </svg>
+                Creating shop…
+              } @else {
+                Create Shop
+              }
+            </button>
+          </form>
+        </div>
+      }
+
+      <!-- ── Empty state ────────────────────────────────────────────────────── -->
+      @if (shops().length === 0 && !showCreateForm()) {
+        <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-12 flex flex-col items-center gap-3 text-center">
+          <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016 2.993 2.993 0 0 0 2.25-1.016 3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+            </svg>
+          </div>
+          <p class="text-sm font-semibold text-slate-700">No shops yet</p>
+          <p class="text-xs text-slate-400">Click <strong>New Shop</strong> above to get started.</p>
+        </div>
+      }
+
+      <!-- ── Shop list ──────────────────────────────────────────────────────── -->
+      @for (shop of shops(); track shop.id) {
+        <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm overflow-hidden mb-4">
+
+          <!-- View mode -->
+          @if (editingShopId() !== shop.id) {
+
+            <!-- Header band -->
+            <div class="h-24 bg-gradient-to-r from-slate-700 to-slate-900 relative">
+              <div class="absolute -bottom-9 left-6">
+                <div class="w-18 h-18 rounded-2xl ring-4 ring-white overflow-hidden bg-slate-100 flex items-center justify-center shadow-md" style="width:4.5rem;height:4.5rem;">
+                  @if (shop.logoUrl) {
+                    <img [src]="shop.logoUrl" class="w-full h-full object-cover" [alt]="shop.name" />
+                  } @else {
+                    <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016 2.993 2.993 0 0 0 2.25-1.016 3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+                    </svg>
+                  }
+                </div>
+              </div>
+              <!-- Actions in band top-right -->
+              <div class="absolute top-3 right-4 flex gap-2">
+                <button [class]="ui.buttonSecondary" class="text-xs! bg-white/90 hover:bg-white" (click)="startEdit(shop)">Edit</button>
+                <button
+                  [class]="ui.buttonDanger"
+                  class="text-xs!"
+                  [disabled]="deleting() === shop.id"
+                  (click)="onDelete(shop)"
+                >
+                  @if (deleting() === shop.id) { Deleting… } @else { Delete }
+                </button>
+              </div>
+            </div>
+
+            <!-- Shop info -->
+            <div class="pt-12 px-6 pb-6">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h2 class="text-lg font-bold text-slate-900">{{ shop.name }}</h2>
+                  @if (shop.description) {
+                    <p class="text-sm text-slate-500 mt-0.5 max-w-lg">{{ shop.description }}</p>
+                  }
+                </div>
+                <span
+                  class="mt-1 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                  [ngClass]="statusBadgeClass(shop.status)"
+                >
+                  {{ shop.status }}
+                </span>
+              </div>
+
+              <!-- Address -->
+              @if (shop.pickUpAddress) {
+                <div class="mt-4 border-t border-slate-100 pt-4">
+                  <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Pick-up Address</p>
+                  <p class="text-sm text-slate-700">
+                    {{ [shop.pickUpAddress.street, shop.pickUpAddress.ward, shop.pickUpAddress.district,
+                        shop.pickUpAddress.city, shop.pickUpAddress.country].filter(x => !!x).join(', ') }}
+                    @if (shop.pickUpAddress.zipCode) { — {{ shop.pickUpAddress.zipCode }} }
+                  </p>
+                </div>
+              }
+
+              <!-- Meta + CTA -->
+              <div class="mt-4 flex items-center justify-between">
+                <div class="flex gap-5 text-xs text-slate-400">
+                  <span>Created: {{ shop.createdAt | date:'mediumDate' }}</span>
+                  <span>Updated: {{ shop.updatedAt | date:'mediumDate' }}</span>
+                </div>
+                <button [class]="ui.buttonPrimary" class="text-xs!" (click)="goAddProduct(shop.id)">
+                  <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Add Product
+                </button>
+              </div>
+            </div>
+
+          <!-- Edit mode -->
+          } @else {
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-5">
+                <h2 class="text-base font-bold text-slate-900">Edit: {{ shop.name }}</h2>
+                <button [class]="ui.buttonSecondary" class="text-xs!" (click)="cancelEdit(shop)">Cancel</button>
+              </div>
+
+              <form [formGroup]="editForm" (ngSubmit)="onUpdateSubmit(shop)" novalidate class="flex flex-col gap-5">
+
+                <!-- Logo upload -->
+                <div class="flex flex-col gap-1.5">
+                  <label [class]="ui.label">Shop Logo <span class="text-xs text-slate-400">(optional)</span></label>
+                  <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-xl ring-1 ring-slate-200 bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
+                      @if (logoPreviewMap[shop.id]) {
+                        <img [src]="logoPreviewMap[shop.id]!" class="w-full h-full object-cover" alt="Logo preview" />
+                      } @else if (shop.logoUrl) {
+                        <img [src]="shop.logoUrl" class="w-full h-full object-cover" alt="Shop logo" />
+                      } @else {
+                        <svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                        </svg>
+                      }
+                    </div>
+                    <label class="cursor-pointer">
+                      <span [class]="ui.buttonSecondary" class="text-xs!">Change logo</span>
+                      <input type="file" accept="image/*" class="hidden" (change)="onLogoChange($event, shop.id)" />
+                    </label>
+                  </div>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="flex flex-col gap-1 sm:col-span-2">
+                    <label [class]="ui.label">Shop Name <span class="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      formControlName="name"
+                      [class]="ui.input"
+                      [class.border-red-400]="isEditFieldInvalid('name')"
+                    />
+                    @if (isEditFieldInvalid('name')) { <p [class]="ui.errorText">Shop name is required.</p> }
+                  </div>
+
+                  <div class="flex flex-col gap-1 sm:col-span-2">
+                    <label [class]="ui.label">Description</label>
+                    <textarea formControlName="description" rows="2" [class]="ui.input" class="resize-none"></textarea>
+                  </div>
+
+                  <div class="flex flex-col gap-1">
+                    <label [class]="ui.label">Street</label>
+                    <input type="text" formControlName="street" [class]="ui.input" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <label [class]="ui.label">Ward</label>
+                    <input type="text" formControlName="ward" [class]="ui.input" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <label [class]="ui.label">District</label>
+                    <input type="text" formControlName="district" [class]="ui.input" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <label [class]="ui.label">City</label>
+                    <input type="text" formControlName="city" [class]="ui.input" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <label [class]="ui.label">Country</label>
+                    <input type="text" formControlName="country" [class]="ui.input" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <label [class]="ui.label">Zip Code</label>
+                    <input type="text" formControlName="zipCode" [class]="ui.input" />
+                  </div>
+                </div>
+
+                <button type="submit" [class]="ui.buttonPrimary" class="w-full" [disabled]="saving()">
+                  @if (saving()) {
+                    <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+                    </svg>
+                    Saving…
+                  } @else {
+                    Save Changes
+                  }
+                </button>
+              </form>
+            </div>
+          }
+
+        </div>
+      }
+
+    </div>
+  }
+
+</div>
