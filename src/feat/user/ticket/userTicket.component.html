@@ -65,40 +65,6 @@
         </div>
       </div>
 
-      <!-- Shop Name -->
-      <div class="flex flex-col gap-1.5">
-        <label for="shopName" class="text-sm font-medium text-slate-700">Shop Name</label>
-        <input
-          id="shopName"
-          type="text"
-          formControlName="shopName"
-          placeholder="Enter your shop name"
-          [class]="ui.input"
-          class="w-full"
-          [class.border-red-400]="isFieldInvalid('shopName')"
-        />
-        @if (isFieldInvalid('shopName')) {
-          <p class="text-xs text-red-500">Shop name is required</p>
-        }
-      </div>
-
-      <!-- Delivery Address -->
-      <div class="flex flex-col gap-1.5">
-        <label for="deliveryAddress" class="text-sm font-medium text-slate-700">Delivery Address</label>
-        <input
-          id="deliveryAddress"
-          type="text"
-          formControlName="deliveryAddress"
-          placeholder="Enter your delivery address"
-          [class]="ui.input"
-          class="w-full"
-          [class.border-red-400]="isFieldInvalid('deliveryAddress')"
-        />
-        @if (isFieldInvalid('deliveryAddress')) {
-          <p class="text-xs text-red-500">Delivery address is required</p>
-        }
-      </div>
-
       <!-- Tax ID -->
       <div class="flex flex-col gap-1.5">
         <label for="taxId" class="text-sm font-medium text-slate-700">Tax ID</label>

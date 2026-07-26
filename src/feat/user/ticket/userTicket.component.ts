@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserTicketService, SavePromotionRequest } from './userTicket.service';
 import { ToastrService } from 'ngx-toastr';
-import { UI_CLASS_NAME } from '../../shared/constant/className.constant';
+import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 
 @Component({
   selector: 'app-user-ticket',
@@ -21,9 +21,7 @@ export class UserTicketComponent {
   readonly form = this.fb.group({
     identityCardNumber: ['', Validators.required],
     bankName:           ['', Validators.required],
-    bankAccountNumber:  ['', Validators.required],
-    shopName:           ['', Validators.required],
-    deliveryAddress:    ['', Validators.required],
+    bankAccountNumber:  ['', Validators.required],  
     taxId:              ['', Validators.required],
   });
 
