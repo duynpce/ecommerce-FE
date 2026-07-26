@@ -1,0 +1,269 @@
+<div [class]="ui.pageWrapper">
+  <div [class]="ui.card">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 [class]="ui.sectionTitle">New Product</h1>
+        <p [class]="ui.sectionDescription">Fill in the details to list a new product in your shop.</p>
+      </div>
+      <a routerLink="/user/my-products" [class]="ui.buttonSecondary" class="text-xs!">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        Back
+      </a>
+    </div>
+
+    @if (!isContributor()) {
+      <div class="mt-4 flex items-center gap-3 rounded-xl bg-red-50 ring-1 ring-red-200 px-4 py-3">
+        <svg class="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <p class="text-xs font-semibold text-red-800">
+          Only users with the CONTRIBUTOR role can add products.
+        </p>
+      </div>
+    }
+
+    <!-- Shop selector banner -->
+    @if (loadingShop()) {
+      <div class="mt-4 flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+        </svg>
+        Loading shop info…
+      </div>
+    } @else if (shops().length > 0) {
+
+      <!-- Multiple shops: show a selector -->
+      @if (shops().length > 1) {
+        <div class="mt-4 rounded-xl bg-slate-50 ring-1 ring-slate-200 px-4 py-3 flex flex-col gap-2">
+          <label class="text-xs font-semibold text-slate-700">Select shop to add product to</label>
+          <select [class]="ui.select" (change)="onShopSelect($any($event.target).value)">
+            @for (s of shops(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === shop()?.id">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <!-- Selected shop info -->
+      @if (shop()) {
+        <div class="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 ring-1 ring-emerald-100 px-4 py-3">
+          @if (shop()!.logoUrl) {
+            <img [src]="shop()!.logoUrl" class="w-8 h-8 rounded-lg object-cover" alt="Shop logo" />
+          } @else {
+            <div class="w-8 h-8 rounded-lg bg-emerald-200 flex items-center justify-center">
+              <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016 2.993 2.993 0 0 0 2.25-1.016 3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+              </svg>
+            </div>
+          }
+          <div>
+            <p class="text-xs font-semibold text-emerald-800">Shop: {{ shop()!.name }}</p>
+            <p class="text-xs text-emerald-600">Product will be added to this shop</p>
+          </div>
+        </div>
+      }
+
+    } @else {
+      <div class="mt-4 flex items-center gap-3 rounded-xl bg-amber-50 ring-1 ring-amber-100 px-4 py-3">
+        <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <div>
+          <p class="text-xs font-semibold text-amber-800">No shop found</p>
+          <p class="text-xs text-amber-600">Please create your shop first in <a routerLink="/user/my-shop" class="underline font-medium">My Shop</a></p>
+        </div>
+      </div>
+    }
+
+    <!-- Form -->
+    <form class="mt-6 flex flex-col gap-5" (ngSubmit)="onSubmit()" [formGroup]="form" novalidate>
+
+      <!-- Multi-image upload -->
+      <div class="flex flex-col gap-1.5">
+        <label class="mb-1 block text-sm font-medium text-slate-700">
+          Product Images <span class="text-red-500">*</span>
+          <span class="ml-1 text-xs text-slate-400">(min 1, multiple allowed)</span>
+        </label>
+
+        <!-- Previews grid -->
+        @if (previews().length > 0) {
+          <div class="flex flex-wrap gap-2 mb-2">
+            @for (src of previews(); track $index) {
+              <div class="relative w-20 h-20 rounded-xl overflow-hidden ring-1 ring-slate-200 group">
+                <img [src]="src" class="w-full h-full object-cover" alt="Preview" />
+                <button
+                  type="button"
+                  (click)="removePreview($index)"
+                  class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                >
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <label class="flex flex-col gap-1 cursor-pointer w-fit">
+          <span [class]="ui.buttonSecondary" class="text-xs!">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+            </svg>
+            {{ previews().length > 0 ? 'Add / Replace images' : 'Upload images' }}
+          </span>
+          <span class="text-xs text-slate-400">PNG, JPG, WEBP up to 5 MB each</span>
+          <input type="file" accept="image/*" multiple class="hidden" (change)="onFilesChange($event)" />
+        </label>
+      </div>
+
+      <!-- Name -->
+      <div class="flex flex-col gap-1.5">
+        <label for="name" [class]="ui.label">Name <span class="text-red-500">*</span></label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="e.g. Wireless Headphones"
+          [class]="ui.input"
+          [class.border-red-400]="isFieldInvalid('name')"
+        />
+        @if (isFieldInvalid('name')) {
+          <p [class]="ui.errorText">Product name is required.</p>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="flex flex-col gap-1.5">
+        <label for="description" [class]="ui.label">Description <span class="text-xs text-slate-400">(optional)</span></label>
+        <textarea
+          id="description"
+          formControlName="description"
+          rows="3"
+          placeholder="Describe the product..."
+          [class]="ui.input"
+          class="resize-none"
+        ></textarea>
+      </div>
+
+      <!-- Price + Quantity -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label for="price" [class]="ui.label">Price (USD) <span class="text-red-500">*</span></label>
+          <input
+            id="price"
+            type="number"
+            min="0"
+            step="0.01"
+            formControlName="price"
+            placeholder="0.00"
+            [class]="ui.input"
+            [class.border-red-400]="isFieldInvalid('price')"
+          />
+          @if (isFieldInvalid('price')) {
+            <p [class]="ui.errorText">Valid price is required.</p>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label for="quantity" [class]="ui.label">Quantity <span class="text-red-500">*</span></label>
+          <input
+            id="quantity"
+            type="number"
+            min="0"
+            formControlName="quantity"
+            placeholder="0"
+            [class]="ui.input"
+            [class.border-red-400]="isFieldInvalid('quantity')"
+          />
+          @if (isFieldInvalid('quantity')) {
+            <p [class]="ui.errorText">Valid quantity is required.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="flex flex-col gap-1.5">
+        <label for="category" [class]="ui.label">Category <span class="text-red-500">*</span></label>
+        <select
+          id="category"
+          formControlName="category"
+          [class]="ui.select"
+          [class.border-red-400]="isFieldInvalid('category')"
+        >
+          <option value="">Select a category</option>
+          @for (cat of categories; track cat) {
+            <option [value]="cat">{{ labelForCategory(cat) }}</option>
+          }
+        </select>
+        @if (isFieldInvalid('category')) {
+          <p [class]="ui.errorText">Category is required.</p>
+        }
+      </div>
+
+      <!-- Attributes (dynamic key/value) -->
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <label [class]="ui.label" class="mb-0!">Attributes <span [class]="ui.helperText">(optional)</span></label>
+          <button type="button" [class]="ui.buttonSecondary" class="text-xs! py-1.5!" (click)="addAttribute()">
+            + Add attribute
+          </button>
+        </div>
+
+        @for (row of attributeRows(); track $index) {
+          <div class="flex gap-2 items-center">
+            <input
+              type="text"
+              placeholder="Key (e.g. Color)"
+              [value]="row.key"
+              (input)="updateAttributeKey($index, $any($event.target).value)"
+              [class]="ui.input"
+              class="flex-1"
+            />
+            <input
+              type="text"
+              placeholder="Value (e.g. Red)"
+              [value]="row.value"
+              (input)="updateAttributeValue($index, $any($event.target).value)"
+              [class]="ui.input"
+              class="flex-1"
+            />
+            <button type="button" (click)="removeAttribute($index)" class="text-slate-400 hover:text-red-500 transition-colors p-1 shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        }
+
+        @if (attributeRows().length === 0) {
+          <p [class]="ui.helperText">No attributes added yet.</p>
+        }
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        [class]="ui.buttonPrimary"
+        class="w-full mt-2"
+        [disabled]="loading() || loadingShop() || !shop() || !isContributor()"
+      >
+        @if (loading()) {
+          <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+          </svg>
+          Creating…
+        } @else {
+          Create Product
+        }
+      </button>
+
+    </form>
+  </div>
+</div>
