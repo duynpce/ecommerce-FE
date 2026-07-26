@@ -22,6 +22,13 @@ export const routes: Routes = [
         (m) => m.CallbackComponent,
       ),
   },
+  {
+    path: 'complete-profile',
+    loadComponent: () =>
+      import('../feat/auth/complete-profile/complete-profile.component').then(
+        (m) => m.CompleteProfileComponent,
+      ),
+  },
 
   // ── Shell layout — wraps home, logout ───────────────────────────────────
   {
@@ -56,27 +63,92 @@ export const routes: Routes = [
     ],
   },
 
-  // ── User layout — wraps user-facing feature pages ───────────────────────
+  // ── User layout — left sidebar, wraps user-facing feature pages ─────────
   {
     path: 'user',
     loadComponent: () =>
       import('../layout/userLayout.component').then((m) => m.UserLayoutComponent),
     children: [
       {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'products',
+      },
+
+      // ── Contributor application ────────────────────────────────────────
+      {
         path: 'tickets/apply',
         loadComponent: () =>
-          import('../feat/user/userTicket.component').then(
+          import('../feat/user/ticket/userTicket.component').then(
             (m) => m.UserTicketComponent,
           ),
       },
-      // Add more user pages here as needed
-      // {
-      //   path: 'profile',
-      //   loadComponent: () =>
-      //     import('../feat/profile/profile.component').then(
-      //       (m) => m.ProfileComponent,
-      //     ),
-      // },
+
+      // ── Products ──────────────────────────────────────────────────────
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('../feat/user/product/userProduct.component').then(
+            (m) => m.UserProductComponent,
+          ),
+      },
+      {
+        path: 'products/create',
+        loadComponent: () =>
+          import('../feat/user/product/userProductCreate.component').then(
+            (m) => m.UserProductCreateComponent,
+          ),
+      },
+      {
+        path: 'products/:id',
+        loadComponent: () =>
+          import('../feat/user/product/userProductDetail.component').then(
+            (m) => m.UserProductDetailComponent,
+          ),
+      },
+
+      // ── Shops ─────────────────────────────────────────────────────────
+      {
+        path: 'shops/:id',
+        loadComponent: () =>
+          import('../feat/user/shop/userShopDetail.component').then(
+            (m) => m.UserShopDetailComponent,
+          ),
+      },
+
+      // ── My Shop (Contributor only) ────────────────────────────────────
+      {
+        path: 'my-shop',
+        loadComponent: () =>
+          import('../feat/user/shop/userMyShop.component').then(
+            (m) => m.UserMyShopComponent,
+          ),
+      },
+
+      // ── My Products (Contributor only) ───────────────────────────────
+      {
+        path: 'my-products',
+        loadComponent: () =>
+          import('../feat/user/product/userMyProducts.component').then(
+            (m) => m.UserMyProductsComponent,
+          ),
+      },
+
+      // ── Transactions ──────────────────────────────────────────────────
+      {
+        path: 'transactions',
+        loadComponent: () =>
+          import('../feat/user/transaction/userTransaction.component').then(
+            (m) => m.UserTransactionComponent,
+          ),
+      },
+      {
+        path: 'transactions/:id',
+        loadComponent: () =>
+          import('../feat/user/transaction/userTransactionDetail.component').then(
+            (m) => m.UserTransactionDetailComponent,
+          ),
+      },
     ],
   },
 
@@ -104,6 +176,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../feat/admin/dashboard/ticket/adminTicket.component').then(
             (m) => m.AdminTicketComponent,
+          ),
+      },
+      // ── Admin: all transactions (admin/search endpoint) ────────────────
+      {
+        path: 'transactions',
+        loadComponent: () =>
+          import('../feat/admin/dashboard/transaction/adminTransaction.component').then(
+            (m) => m.AdminTransactionComponent,
           ),
       },
     ],
