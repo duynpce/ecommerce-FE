@@ -62,7 +62,7 @@ export class UserShopDetailComponent implements OnInit {
   loadProducts(page: number): void {
     this.loadingProducts.set(true);
     this.productService.search({
-      contributorId: this.shop()!.contributorId,
+      shopId: this.shopId,
       page,
       limit: 12,
     }).subscribe({
@@ -92,13 +92,14 @@ export class UserShopDetailComponent implements OnInit {
 
   hasAddress(shop: ShopResponse): boolean {
     const a = shop.pickUpAddress;
-    return !!(a && (a.street || a.ward || a.district || a.city || a.country));
+    if (!a || typeof a !== 'object') return false;
+    return !!(a.street || a.ward || a.district || a.city || a.country);
   }
 
-  formatAddress(shop: ShopResponse): string {
+   formatAddress(shop: ShopResponse): string {
     const a = shop.pickUpAddress as AddressResponse;
-    return [a.street, a.ward, a.district, a.city, a.country]
-      .filter(Boolean)
-      .join(', ');
+    const parts = [a.street, a.ward, a.district, a.city, a.country].filter(Boolean).join(', ');
+    return a.zipCode ? `${parts} — ${a.zipCode}` : parts;
   }
+
 }

@@ -13,12 +13,12 @@ import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 import { DecimalPipe } from '@angular/common';
 import { PaginationBarComponent } from '../../../shared/component/paginationBar.component';
 @Component({
-  selector: 'app-user-my-products',
+  selector: 'app-contributor-my-products',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, RouterLink, DecimalPipe, PaginationBarComponent],
-  templateUrl: './userMyProducts.component.html',
+  templateUrl: './contributorMyProducts.component.html',
 })
-export class UserMyProductsComponent implements OnInit {
+export class contributorMyProductsComponent implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly toastr         = inject(ToastrService);
   private readonly router         = inject(Router);
@@ -90,6 +90,6 @@ export class UserMyProductsComponent implements OnInit {
   }
 
   viewDetail(id: string): void {
-    this.router.navigate(['/user/products', id]);
+    this.router.navigate(['/contributor/products', id]);
   }
 }

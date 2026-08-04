@@ -10,7 +10,6 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 })
 export class UserLayoutComponent {
   private readonly roles = signal<string[]>(this.readRoles());
-
   readonly isContributor = computed(() => this.roles().includes('CONTRIBUTOR'));
 
   private readRoles(): string[] {
@@ -22,4 +21,3 @@ export class UserLayoutComponent {
     }
   }
 }
-

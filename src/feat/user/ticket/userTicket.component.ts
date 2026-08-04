@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { UserTicketService, SavePromotionRequest } from './userTicket.service';
 import { ToastrService } from 'ngx-toastr';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
+import { TicketService } from '../../../shared/service/ticket.service';
 
 @Component({
   selector: 'app-user-ticket',
@@ -12,7 +12,7 @@ import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 })
 export class UserTicketComponent {
   private readonly fb            = inject(FormBuilder);
-  private readonly ticketService = inject(UserTicketService);
+  private readonly ticketService = inject(TicketService);
   private readonly toastr        = inject(ToastrService);
 
   readonly ui      = UI_CLASS_NAME;

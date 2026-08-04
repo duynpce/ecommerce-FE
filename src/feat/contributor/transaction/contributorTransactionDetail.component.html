@@ -1,0 +1,193 @@
+<div [class]="ui.pageWrapper">
+
+  @if (loading()) {
+    <div [class]="ui.center" class="py-24">
+      <svg class="animate-spin h-8 w-8 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+      </svg>
+    </div>
+  } @else if (transaction(); as tx) {
+
+    <div class="mx-auto w-full max-w-2xl">
+
+      <!-- Back -->
+      <a routerLink="/contributor/transactions"
+         class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors mb-6">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        Back to Orders
+      </a>
+
+      <!-- ── Stage timeline ───────────────────────────────────────────── -->
+      <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-6 mb-5">
+        <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-5">Order progress</h2>
+
+        <ol class="flex items-start gap-0">
+          @for (stage of stages; track stage.status; let last = $last) {
+
+            <!-- Step node -->
+            <li class="flex flex-col items-center flex-1 relative">
+
+              <!-- connector line (hidden on last item) -->
+              @if (!last) {
+                <div class="absolute top-4 left-[calc(50%+16px)] right-[calc(-50%+16px)] h-px"
+                     [ngClass]="isStageReached(stage.status) ? 'bg-indigo-300' : 'bg-slate-200'"></div>
+              }
+
+              <!-- circle -->
+              <div class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ring-2 ring-white transition-colors"
+                   [ngClass]="stageCircleClass(stage.status, tx.status)">
+                @if (isStageCompleted(stage.status, tx.status)) {
+                  <!-- checkmark -->
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                } @else if (isStageActive(stage.status, tx.status)) {
+                  <!-- pulse dot -->
+                  <span class="h-2 w-2 rounded-full bg-current animate-pulse"></span>
+                } @else if (isStageFailed(stage.status, tx.status)) {
+                  <!-- X -->
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                } @else {
+                  <!-- step number -->
+                  {{ $index + 1 }}
+                }
+              </div>
+
+              <!-- label -->
+              <p class="mt-2 text-center text-xs font-medium leading-tight max-w-[72px]"
+                 [ngClass]="isStageActive(stage.status, tx.status) ? 'text-indigo-700' : 'text-slate-500'">
+                {{ stage.label }}
+              </p>
+
+              <!-- sub-label for active -->
+              @if (isStageActive(stage.status, tx.status) && stage.hint) {
+                <p class="mt-0.5 text-center text-[10px] text-slate-400 max-w-[80px] leading-tight">{{ stage.hint }}</p>
+              }
+            </li>
+
+          }
+        </ol>
+
+        <!-- Terminal status banner -->
+        @if (isTerminal(tx.status)) {
+          <div class="mt-6 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2"
+               [ngClass]="terminalBannerClass(tx.status)">
+            @if (tx.status === 'COMPLETED') {
+              <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+              Order completed — payment will be released to you.
+            } @else if (tx.status === 'REJECTED') {
+              <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+              You rejected this order. No further action needed.
+            } @else if (tx.status === 'RETURNED') {
+              <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+              </svg>
+              Item returned — the returns procedure has been activated.
+            }
+          </div>
+        }
+      </div>
+
+      <!-- ── Detail card ─────────────────────────────────────────────── -->
+      <div [class]="ui.card">
+
+        <!-- Header row -->
+        <div class="flex items-start justify-between gap-3 mb-5">
+          <div>
+            <h1 [class]="ui.sectionTitle" class="text-lg!">Order detail</h1>
+            <p class="text-xs font-mono text-slate-400 mt-0.5">{{ tx.id }}</p>
+          </div>
+          <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0"
+                [ngClass]="statusClass(tx.status)">
+            {{ tx.status }}
+          </span>
+        </div>
+
+        <!-- Info grid -->
+        <dl class="grid grid-cols-2 gap-x-6 gap-y-4 mb-5">
+          <div>
+            <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</dt>
+            <dd class="mt-1 text-sm text-slate-700">{{ tx.createdAt | date:'medium' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Quantity</dt>
+            <dd class="mt-1 text-sm font-semibold text-slate-900">{{ tx.quantity }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total amount</dt>
+            <dd class="mt-1 text-sm font-semibold text-slate-900">${{ tx.totalAmount | number:'1.2-2' }}</dd>
+          </div>
+          <div class="col-span-2">
+            <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Product ID</dt>
+            <dd class="mt-1 text-xs font-mono text-slate-600 break-all">{{ tx.productId }}</dd>
+          </div>
+          <div class="col-span-2">
+            <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Customer ID</dt>
+            <dd class="mt-1 text-xs font-mono text-slate-600 break-all">{{ tx.customerId }}</dd>
+          </div>
+        </dl>
+
+        <!-- ── Action area ────────────────────────────────────────────── -->
+        @if (!isTerminal(tx.status)) {
+          <div class="border-t border-slate-100 pt-5">
+
+            <!-- PENDING: Accept or Reject -->
+            @if (tx.status === 'PENDING') {
+              <p class="text-sm text-slate-600 mb-3">Review this order and decide whether to accept it.</p>
+              <div class="flex gap-2">
+                <button [class]="ui.buttonPrimary" class="flex-1" [disabled]="acting()" (click)="acceptOrder()">
+                  @if (acting()) { Processing… } @else { Accept order }
+                </button>
+                <button [class]="ui.buttonDanger" class="flex-1" [disabled]="acting()" (click)="rejectOrder()">
+                  Reject
+                </button>
+              </div>
+            }
+
+            <!-- PACKING: Mark as handed to transport -->
+            @if (tx.status === 'PACKING') {
+              <p class="text-sm text-slate-600 mb-3">
+                Pack the item and hand it to the transport agency, then confirm below.
+              </p>
+              <button [class]="ui.buttonPrimary" class="w-full" [disabled]="acting()" (click)="markHandedToTransport()">
+                @if (acting()) {
+                  <svg class="animate-spin h-4 w-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+                  </svg>
+                  Processing…
+                } @else {
+                  Confirm handed to transport
+                }
+              </button>
+            }
+
+            <!-- DELIVERING: no action for contributor, customer confirms -->
+            @if (tx.status === 'DELIVERING') {
+              <div class="rounded-lg bg-violet-50 px-4 py-3 text-sm text-violet-700 flex items-center gap-2">
+                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                </svg>
+                In transit — waiting for the customer to confirm receipt.
+              </div>
+            }
+
+          </div>
+        }
+
+      </div>
+    </div>
+
+  }
+
+</div>

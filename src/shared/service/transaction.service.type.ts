@@ -1,4 +1,13 @@
-export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED';
+export type TransactionStatus =
+  | 'PENDING'
+  | 'PACKING'
+  | 'DELIVERING'
+  | 'NOT_RECEIVED'
+  | 'COMPLETED'
+  | 'REJECTED'
+  | 'RETURNED'
+  | 'FAILED'
+  | 'REVERSED';
 
 export interface TransactionResponse {
   id: string;
@@ -6,7 +15,7 @@ export interface TransactionResponse {
   contributorId: string;
   customerId: string;
   quantity: number;
-  totalAmount: number;
+  totalAmount: number | string;
   status: TransactionStatus;
   createdAt: string;
 }
@@ -21,7 +30,6 @@ export interface UpdateTransactionRequest {
   id: string;
   quantity?: number;
   price?: number;
-  status?: TransactionStatus;
 }
 
 export interface TransactionFilter {

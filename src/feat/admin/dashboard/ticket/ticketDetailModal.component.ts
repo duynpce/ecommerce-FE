@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { UI_CLASS_NAME } from '../../../../shared/constant/className.constant';
-import { PromotionTicketResponse } from './promotionTicket.type';
+import { PromotionTicketResponse } from '../../../../shared/service/ticket.service.type';
 
 @Component({
   selector: 'app-ticket-detail-modal',

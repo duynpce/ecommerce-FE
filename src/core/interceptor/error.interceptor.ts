@@ -142,9 +142,14 @@ function handle401(
         return next(req.clone({ withCredentials: true })); 
       }),
       catchError((refreshError) => {
+
         isRefreshing.next(false);
         refreshDone$.next(false); 
-        handleSessionExpired(toastr, router);
+
+        if(refreshError.status === 401) {
+          handleSessionExpired(toastr, router);
+        }
+        
         return throwError(() => refreshError);
       })
     );

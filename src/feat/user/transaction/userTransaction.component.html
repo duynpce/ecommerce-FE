@@ -85,7 +85,7 @@
               <tr class="hover:bg-slate-50 transition-colors">
                 <td class="px-4 py-3 font-mono text-xs text-slate-500 truncate max-w-[140px]">{{ tx.productId }}</td>
                 <td class="px-4 py-3 text-slate-700">{{ tx.quantity }}</td>
-                <td class="px-4 py-3 font-medium text-slate-900">${{ tx.totalAmount | number:'1.2-2' }}</td>
+                <td class="px-4 py-3 font-medium text-slate-900">${{ +tx.totalAmount | number:'1.2-2' }}</td>
                 <td class="px-4 py-3">
                   <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium" [ngClass]="statusClass(tx.status)">
                     {{ tx.status }}

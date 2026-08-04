@@ -7,18 +7,18 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ShopService, ShopResponse } from '../../../shared/service/shop.service';
+import { ShopService, ShopResponse, AddressResponse } from '../../../shared/service/shop.service';
 import { ToastrService } from 'ngx-toastr';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 import { DatePipe, NgClass } from '@angular/common';
 
 @Component({
-  selector: 'app-user-my-shop',
+  selector: 'app-contributor-my-shop',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, DatePipe, NgClass],
-  templateUrl: './userMyShop.component.html',
+  templateUrl: './contributorMyShop.component.html',
 })
-export class UserMyShopComponent implements OnInit {
+export class contributorMyShopComponent implements OnInit {
   private readonly fb          = inject(FormBuilder);
   private readonly shopService = inject(ShopService);
   private readonly toastr      = inject(ToastrService);
@@ -248,13 +248,29 @@ export class UserMyShopComponent implements OnInit {
 
   goAddProduct(shopId?: string): void {
     if (shopId) {
-      this.router.navigate(['/user/products/create'], { queryParams: { shopId } });
+      this.router.navigate(['/contributor/products/create'], { queryParams: { shopId } });
     } else {
-      this.router.navigate(['/user/products/create']);
+      this.router.navigate(['/contributor/products/create']);
     }
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
+
+  /**
+   * Returns true only when the backend has sent a proper AddressResponse object
+   * (not a raw Java toString like "Address@62b0c178") and at least one field is set.
+   */
+  hasAddress(shop: ShopResponse): boolean {
+    const a = shop.pickUpAddress;
+    if (!a || typeof a !== 'object') return false;
+    return !!(a.street || a.ward || a.district || a.city || a.country);
+  }
+
+  formatAddress(shop: ShopResponse): string {
+    const a = shop.pickUpAddress as AddressResponse;
+    const parts = [a.street, a.ward, a.district, a.city, a.country].filter(Boolean).join(', ');
+    return a.zipCode ? `${parts} — ${a.zipCode}` : parts;
+  }
 
   statusBadgeClass(status: string): string {
     const map: Record<string, string> = {

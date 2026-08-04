@@ -10,6 +10,7 @@ export type ProductCategory =
 export interface ProductResponse {
   id: string;
   contributorId: string;
+  shopId: string;
   imgUrls: string[];
   name: string;
   description?: string;
@@ -45,6 +46,7 @@ export interface ProductFilter {
   name?: string;
   category?: ProductCategory;
   contributorId?: string;
+  shopId?: string;
   minPrice?: number;
   maxPrice?: number;
   createdFrom?: string;

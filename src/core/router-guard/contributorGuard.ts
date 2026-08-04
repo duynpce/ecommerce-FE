@@ -1,8 +1,8 @@
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { ToastrService } from 'ngx-toastr';
+import { inject } from "@angular/core";
+import { CanActivateFn, Router } from "@angular/router";
+import { ToastrService } from "ngx-toastr";
 
-export const adminGuard: CanActivateFn = () => {
+export const contributorGuard: CanActivateFn = () => {
   const router = inject(Router);
   const toast = inject(ToastrService);
 
@@ -10,7 +10,7 @@ export const adminGuard: CanActivateFn = () => {
     const raw = localStorage.getItem('roles');
     const roles: string[] = raw ? JSON.parse(raw) : [];
 
-    if (roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')) {
+    if (roles.includes('CONTRIBUTOR')) {
       return true;
     }
   } catch {
@@ -19,6 +19,7 @@ export const adminGuard: CanActivateFn = () => {
 
   // Save where they were trying to go, then redirect
   sessionStorage.setItem('previousPath', window.location.pathname);
+
   toast.error('You do not have permission to access this page.', 'Access Denied');
   return router.createUrlTree(['/home']);
 };

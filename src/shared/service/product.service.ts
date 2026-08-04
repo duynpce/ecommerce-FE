@@ -23,8 +23,10 @@ export class ProductService {
       if (key === 'imgs' && Array.isArray(val)) {
         // Append each image file under the same key
         (val as File[]).forEach((file) => fd.append('imgs', file, file.name));
-      } else if (key === 'attributes') {
-        fd.append(key, JSON.stringify(val));
+      } else if (key === 'attributes' && typeof val === 'object' && val !== null) {
+      Object.entries(val as Record<string, string>).forEach(([attrKey, attrVal]) => {
+      fd.append(`attributes[${attrKey}]`, attrVal);
+      });
       } else if (val instanceof File) {
         fd.append(key, val, val.name);
       } else {
@@ -75,6 +77,7 @@ export class ProductService {
     if (filter.maxPrice != null) params = params.set('maxPrice', filter.maxPrice);
     if (filter.createdFrom)   params = params.set('createdFrom', filter.createdFrom);
     if (filter.createdTo)     params = params.set('createdTo', filter.createdTo);
+    if(filter.shopId)         params = params.set('shopId', filter.shopId);
 
     return this.http.get<ResponseDto<ProductResponse[]>>(
       `/v1/products/search`,

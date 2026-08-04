@@ -92,7 +92,7 @@ export class UserProductDetailComponent implements OnInit {
         this.patchEditForm(res.data);
         // Once we have the product, fetch the shop via the contributor's shops
         if (res.data?.contributorId) {
-          this.fetchShop(res.data.contributorId);
+          this.fetchShop(res.data.shopId);
         }
       },
       error: (err) => {
@@ -103,14 +103,13 @@ export class UserProductDetailComponent implements OnInit {
     });
   }
 
-  /** Fetch the shop that owns this product by searching with the contributorId */
-  private fetchShop(contributorId: string): void {
+  /** Fetch the shop that owns this product by searching with the shopId */
+  private fetchShop(shopId: string): void {
     this.loadingShop.set(true);
-    this.shopService.search({ contributorId, page: 0, limit: 1 }).subscribe({
+    this.shopService.findById(shopId).subscribe({
       next: (res) => {
         this.loadingShop.set(false);
-        const shops = res.data ?? [];
-        this.shop.set(shops.length > 0 ? shops[0] : null);
+        this.shop.set(res.data ?? null);
       },
       error: () => {
         this.loadingShop.set(false);

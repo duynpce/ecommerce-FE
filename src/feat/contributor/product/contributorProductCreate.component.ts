@@ -20,12 +20,12 @@ import { ToastrService } from 'ngx-toastr';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 
 @Component({
-  selector: 'app-user-product-create',
+  selector: 'app-contributor-product-create',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './userProductCreate.component.html',
+  templateUrl: './contributorProductCreate.component.html',
 })
-export class UserProductCreateComponent implements OnInit {
+export class contributorProductCreateComponent implements OnInit {
   private readonly fb             = inject(FormBuilder);
   private readonly productService = inject(ProductService);
   private readonly shopService    = inject(ShopService);
@@ -82,7 +82,7 @@ export class UserProductCreateComponent implements OnInit {
         this.loadingShop.set(false);
         const list = res.data ?? [];
         this.shops.set(list);
-        // Default: select the first shop (user can change via dropdown)
+        // Default: select the first shop (contributor can change via dropdown)
         if (list.length > 0) {
           this.shop.set(list[0]);
         }
@@ -93,7 +93,7 @@ export class UserProductCreateComponent implements OnInit {
     });
   }
 
-  /** Called when the user picks a different shop from the selector */
+  /** Called when the contributor picks a different shop from the selector */
   onShopSelect(shopId: string): void {
     const found = this.shops().find((s) => s.id === shopId) ?? null;
     this.shop.set(found);
@@ -191,7 +191,7 @@ export class UserProductCreateComponent implements OnInit {
         next: () => {
           this.loading.set(false);
           this.toastr.success('Product created successfully.');
-          this.router.navigate(['/user/my-products']);
+          this.router.navigate(['/contributor/my-products']);
         },
         error: (err) => {
           this.loading.set(false);

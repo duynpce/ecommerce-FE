@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { AdminTicketService } from './adminTicket.service';
-import { PromotionTicketResponse } from './promotionTicket.type';
 import { ToastrService } from 'ngx-toastr';
 import { UI_CLASS_NAME } from '../../../../shared/constant/className.constant';
 import { TicketDetailModalComponent } from './ticketDetailModal.component';
+import { TicketService } from '../../../../shared/service/ticket.service';
+import { PromotionTicketResponse } from '../../../../shared/service/ticket.service.type';
 
 @Component({
   selector: 'app-admin-ticket',
@@ -12,7 +12,7 @@ import { TicketDetailModalComponent } from './ticketDetailModal.component';
   templateUrl: './adminTicket.component.html',
 })
 export class AdminTicketComponent implements OnInit {
-  private readonly ticketService = inject(AdminTicketService);
+  private readonly ticketService = inject(TicketService);
   private readonly toastr = inject(ToastrService);
 
   readonly ui = UI_CLASS_NAME;
@@ -35,7 +35,7 @@ export class AdminTicketComponent implements OnInit {
   }
 
   loadTickets(): void {
-    this.ticketService.getPromotionTickets(this.page(), this.limit()).subscribe({
+    this.ticketService.getPromotions(this.page(), this.limit()).subscribe({
       next: (res) => {
         this.tickets.set(res.data ?? []);
         this.totalPages.set(res.metaData?.totalPages ?? 0);
