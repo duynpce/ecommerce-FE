@@ -62,6 +62,20 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'products' },
 
       {
+        path: 'profile',
+        loadComponent: () =>
+          import('../feat/user/profile/userProfile.component').then(
+            (m) => m.UserProfileComponent,
+          ),
+      },
+      {
+        path: 'credential',
+        loadComponent: () =>
+          import('../feat/user/profile/userCredential.component').then(
+            (m) => m.UserCredentialComponent,
+          ),
+      },
+      {
         path: 'tickets/apply',
         loadComponent: () =>
           import('../feat/user/ticket/userTicket.component').then(
@@ -151,6 +165,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../feat/contributor/transaction/contributorTransactionDetail.component').then(
             (m) => m.ContributorTransactionDetailComponent,
+          ),
+      },
+
+      // Contributor Profile
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('../feat/contributor/profile/contributorProfile.component').then(
+            (m) => m.ContributorProfileComponent,
           ),
       },
     ],

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterOutlet } from '@angular/router';
 import { LogoutButtonComponent } from '../feat/auth/logout/logoutButton.component';
-import { AuthService } from '../feat/auth/auth.service';
+import { AuthService } from '../shared/service/auth.service';
 
 @Component({
   selector: 'app-shell',
@@ -22,7 +22,7 @@ export class ShellComponent {
   });
 
   navigateToProfile(): void {
-    this.router.navigate(['/profile']);
+    this.router.navigate(['/user/profile']);
   }
 
   navigateToLogin(): void {
