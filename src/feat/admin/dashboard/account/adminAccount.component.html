@@ -91,25 +91,11 @@
 
     <div class="mt-4 flex items-center justify-between text-sm text-slate-600">
       <span>{{ totalItems() }} account(s)</span>
-      <div class="flex items-center gap-2">
-        <button
-          type="button"
-          [class]="ui.buttonSecondary"
-          [disabled]="page() <= 1"
-          (click)="onPageChange(page() - 1)"
-        >
-          Previous
-        </button>
-        <span>Page {{ page() }} / {{ totalPages() }}</span>
-        <button
-          type="button"
-          [class]="ui.buttonSecondary"
-          [disabled]="page() >= totalPages()"
-          (click)="onPageChange(page() + 1)"
-        >
-          Next
-        </button>
-      </div>
+      <app-pagination-bar
+        [currentPage]="page() - 1"
+        [totalPages]="totalPages()"
+        (pageChange)="onPageChange($event + 1)"
+      />
     </div>
 
     @if (exportError()) {

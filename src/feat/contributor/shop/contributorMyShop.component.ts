@@ -10,12 +10,12 @@ import { Router } from '@angular/router';
 import { ShopService, ShopResponse, AddressResponse } from '../../../shared/service/shop.service';
 import { ToastrService } from 'ngx-toastr';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-contributor-my-shop',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, DatePipe, NgClass],
+  imports: [ReactiveFormsModule, DatePipe, DecimalPipe, NgClass],
   templateUrl: './contributorMyShop.component.html',
 })
 export class contributorMyShopComponent implements OnInit {
@@ -280,5 +280,13 @@ export class contributorMyShopComponent implements OnInit {
       CLOSED:    'bg-red-100 text-red-600',
     };
     return map[status] ?? 'bg-slate-100 text-slate-600';
+  }
+
+  totalReviewCount(shop: ShopResponse): number {
+    return (shop.oneStarRatingCount ?? 0)
+      + (shop.twoStarRatingCount ?? 0)
+      + (shop.threeStarRatingCount ?? 0)
+      + (shop.fourStarRatingCount ?? 0)
+      + (shop.fiveStarRatingCount ?? 0);
   }
 }

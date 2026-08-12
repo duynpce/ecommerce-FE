@@ -106,29 +106,12 @@
       </table>
 
       <!-- Pagination -->
-      <div class="flex items-center justify-between px-5 py-3 border-t border-slate-200 text-sm text-slate-500">
-        <span>
-          Page {{ page() + 1 }} of {{ totalPages() }}
-          <span class="ml-2 text-slate-400">({{ totalItems() }} total)</span>
-        </span>
-        <div class="flex gap-2">
-          <button
-            type="button"
-            [disabled]="page() === 0"
-            (click)="goToPage(page() - 1)"
-            class="px-3 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            Prev
-          </button>
-          <button
-            type="button"
-            [disabled]="page() + 1 >= totalPages()"
-            (click)="goToPage(page() + 1)"
-            class="px-3 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            Next
-          </button>
-        </div>
+      <div class="px-5 py-4 border-t border-slate-200">
+        <app-pagination-bar
+          [currentPage]="page()"
+          [totalPages]="totalPages()"
+          (pageChange)="goToPage($event)"
+        />
       </div>
     </div>
 

@@ -8,7 +8,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 import { isAuthServer, setStoredAuthServer } from '../auth.type';
 import { ToastrService } from 'ngx-toastr';
-import { AuthService } from '../auth.service';
+import { AuthService } from '../../../shared/service/auth.service';
 
 @Component({
   selector: 'app-callback',

@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, finalize } from 'rxjs';
 import { UI_CLASS_NAME } from '../../../../shared/constant/className.constant';
 import { ExportAccountsModalComponent } from './exportAccounts-modal.component';
+import { PaginationBarComponent } from '../../../../shared/component/paginationBar.component';
 import { AdminAccountService } from './adminAccount.service';
 import {
   EXPORT_FILE_NAME,
@@ -14,12 +15,12 @@ import {
   type Gender,
 } from './adminAccount.type';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 6;
 
 @Component({
   selector: 'app-admin-account',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, DatePipe, ExportAccountsModalComponent],
+  imports: [ReactiveFormsModule, DatePipe, ExportAccountsModalComponent, PaginationBarComponent],
   templateUrl: './adminAccount.component.html',
 })
 export class AdminAccountComponent {

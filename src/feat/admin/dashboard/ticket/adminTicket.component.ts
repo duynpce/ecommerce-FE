@@ -4,11 +4,12 @@ import { UI_CLASS_NAME } from '../../../../shared/constant/className.constant';
 import { TicketDetailModalComponent } from './ticketDetailModal.component';
 import { TicketService } from '../../../../shared/service/ticket.service';
 import { PromotionTicketResponse } from '../../../../shared/service/ticket.service.type';
+import { PaginationBarComponent } from '../../../../shared/component/paginationBar.component';
 
 @Component({
   selector: 'app-admin-ticket',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TicketDetailModalComponent],
+  imports: [TicketDetailModalComponent, PaginationBarComponent],
   templateUrl: './adminTicket.component.html',
 })
 export class AdminTicketComponent implements OnInit {
