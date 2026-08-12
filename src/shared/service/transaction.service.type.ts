@@ -17,6 +17,7 @@ export interface TransactionResponse {
   quantity: number;
   totalAmount: number | string;
   status: TransactionStatus;
+  isReviewed: boolean;
   createdAt: string;
 }
 

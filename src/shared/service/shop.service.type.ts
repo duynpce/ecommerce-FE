@@ -16,6 +16,13 @@ export interface ShopResponse {
   description?: string;
   logoUrl?: string;
   pickUpAddress?: AddressResponse;
+  rating?: number;
+  soldQuantity?: number;
+  oneStarRatingCount?: number;
+  twoStarRatingCount?: number;
+  threeStarRatingCount?: number;
+  fourStarRatingCount?: number;
+  fiveStarRatingCount?: number;
   status: ShopStatus;
   createdAt: string;
   updatedAt: string;
