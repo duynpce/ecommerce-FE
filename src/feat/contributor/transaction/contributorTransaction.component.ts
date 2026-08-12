@@ -17,6 +17,7 @@ import { ReportService } from '../../../shared/service/report.service';
 import { ToastrService } from 'ngx-toastr';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 import { DatePipe, DecimalPipe, LowerCasePipe, NgClass, SlicePipe } from '@angular/common';
+import { PaginationBarComponent } from '../../../shared/component/paginationBar.component';
 
 /** Tabs visible on the contributor order page, mapped to their BPMN statuses. */
 type ContributorTab = 'PENDING' | 'PACKING' | 'DELIVERING' | 'COMPLETED';
@@ -31,7 +32,7 @@ interface TabConfig {
 @Component({
   selector: 'app-contributor-transaction',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, NgClass, SlicePipe, LowerCasePipe],
+  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, NgClass, SlicePipe, LowerCasePipe, PaginationBarComponent],
   templateUrl: './contributorTransaction.component.html',
 })
 export class ContributorTransactionComponent implements OnInit {
@@ -159,7 +160,7 @@ export class ContributorTransactionComponent implements OnInit {
   }
 
   viewDetail(id: string): void {
-    this.router.navigate(['/user/contributor/transactions', id]);
+    this.router.navigate(['/contributor/transactions', id]);
   }
 
   // ── Export ──────────────────────────────────────────────────────────────────

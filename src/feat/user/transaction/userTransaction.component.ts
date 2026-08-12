@@ -15,11 +15,12 @@ import {
 import { ToastrService } from 'ngx-toastr';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
+import { PaginationBarComponent } from '../../../shared/component/paginationBar.component';
 
 @Component({
   selector: 'app-user-transaction',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports :[ReactiveFormsModule, DecimalPipe, DatePipe, NgClass],
+  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, NgClass, PaginationBarComponent],
   templateUrl: './userTransaction.component.html',
 })
 export class UserTransactionComponent implements OnInit {

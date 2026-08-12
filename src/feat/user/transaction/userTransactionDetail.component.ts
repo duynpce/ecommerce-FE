@@ -17,11 +17,12 @@ import { DeliveryStatus } from '../../../shared/service/ticket.service.type';
 import { ToastrService } from 'ngx-toastr';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
+import { ProductReviewService } from '../../../shared/service/product-review.service';
 
 @Component({
   selector: 'app-user-transaction-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, NgClass],
+  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, NgClass, RouterLink],
   templateUrl: './userTransactionDetail.component.html',
 })
 export class UserTransactionDetailComponent implements OnInit {
@@ -31,6 +32,7 @@ export class UserTransactionDetailComponent implements OnInit {
   private readonly transactionService = inject(TransactionService);
   private readonly ticketService      = inject(TicketService);
   private readonly toastr             = inject(ToastrService);
+  private readonly reviewService      = inject(ProductReviewService);
 
   readonly ui            = UI_CLASS_NAME;
   readonly loading       = signal(false);
@@ -39,11 +41,18 @@ export class UserTransactionDetailComponent implements OnInit {
   readonly confirming    = signal<DeliveryStatus | null>(null);
   readonly transaction   = signal<TransactionResponse | null>(null);
   readonly editMode      = signal(false);
+  readonly submittingReview = signal(false);
+  readonly stars = [1, 2, 3, 4, 5];
 
   readonly editForm = this.fb.group({
     quantity: [null as number | null, [Validators.min(1)]],
     price:    [null as number | string | null, [Validators.min(0)]],
     status:   ['' as TransactionStatus | ''],
+  });
+
+  readonly reviewForm = this.fb.group({
+    rating: [5, [Validators.required, Validators.min(1), Validators.max(5)]],
+    comment: [''],
   });
 
   private txId!: string;
@@ -96,6 +105,39 @@ export class UserTransactionDetailComponent implements OnInit {
       },
     });
   }
+
+
+  isReviewFieldInvalid(field: string): boolean {
+    const c = this.reviewForm.get(field);
+    return !!(c?.invalid && c?.touched);
+  }
+
+  onSubmitReview(): void {
+    if (this.reviewForm.invalid) {
+      this.reviewForm.markAllAsTouched();
+      return;
+    }
+    this.submittingReview.set(true);
+    this.reviewService
+      .create({
+        productId:     this.transaction()?.productId || '',
+        transactionId: this.txId,
+        rating:        this.reviewForm.value.rating!,
+        comment:       this.reviewForm.value.comment || '',
+      })
+      .subscribe({
+        next: () => {
+          this.submittingReview.set(false);
+          this.toastr.success('Review submitted!');
+          this.reviewForm.reset({ rating: 5 }); 
+        },
+        error: (err) => {
+          this.submittingReview.set(false);
+          this.toastr.error(err?.error?.message ?? 'Failed to submit review.');
+        },
+      });
+  }
+  
 
   statusClass(status: TransactionStatus): string {
     const map: Record<string, string> = {
