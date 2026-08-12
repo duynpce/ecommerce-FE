@@ -55,7 +55,7 @@ export class UserProductComponent implements OnInit {
 
     this.productService.search({
       page,
-      limit: 12,
+      limit: 6,
       name:        f.name        || undefined,
       category:    (f.category   || undefined) as ProductCategory | undefined,
       minPrice:    f.minPrice    ?? undefined,

@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   OnInit,
   signal,
@@ -15,13 +16,15 @@ import {
 import { ShopService, ShopResponse } from '../../../shared/service/shop.service';
 import { ToastrService } from 'ngx-toastr';
 import { TransactionService } from '../../../shared/service/transaction.service';
+import { ProductReviewService, ProductReviewResponse } from '../../../shared/service/product-review.service';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
-import { DecimalPipe, KeyValuePipe } from '@angular/common';
+import { DecimalPipe, KeyValuePipe, DatePipe, SlicePipe } from '@angular/common';
+import { PaginationBarComponent } from '../../../shared/component/paginationBar.component';
 
 @Component({
   selector: 'app-user-product-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, KeyValuePipe, DecimalPipe, RouterLink],
+  imports: [ReactiveFormsModule, KeyValuePipe, DecimalPipe, DatePipe, RouterLink, SlicePipe, PaginationBarComponent],
   templateUrl: './userProductDetail.component.html',
 })
 export class UserProductDetailComponent implements OnInit {
@@ -31,6 +34,7 @@ export class UserProductDetailComponent implements OnInit {
   private readonly productService     = inject(ProductService);
   private readonly shopService        = inject(ShopService);
   private readonly transactionService = inject(TransactionService);
+  private readonly reviewService      = inject(ProductReviewService);
   private readonly toastr             = inject(ToastrService);
 
   readonly ui            = UI_CLASS_NAME;
@@ -39,13 +43,29 @@ export class UserProductDetailComponent implements OnInit {
   readonly deleting      = signal(false);
   readonly buying        = signal(false);
   readonly loadingShop   = signal(false);
+  readonly loadingReviews = signal(false);
   readonly isContributor = signal(false);
   readonly product       = signal<ProductResponse | null>(null);
   readonly shop          = signal<ShopResponse | null>(null);
+  readonly reviews       = signal<ProductReviewResponse[]>([]);
   readonly editMode      = signal(false);
   readonly preview       = signal<string | null>(null);
   selectedFiles: File[]  = [];
   previews               = signal<string[]>([]);
+
+  readonly reviewPage     = signal(0);
+  readonly reviewPageSize = 5;
+
+  readonly pagedReviews = computed(() => {
+    const start = this.reviewPage() * this.reviewPageSize;
+    return this.reviews().slice(start, start + this.reviewPageSize);
+  });
+
+  readonly reviewTotalPages = computed(() =>
+    Math.ceil(this.reviews().length / this.reviewPageSize),
+  );
+
+  readonly stars = [1, 2, 3, 4, 5];
 
   readonly categories: ProductCategory[] = [
     'ELECTRONICS', 'CLOTHING', 'BOOKS',
@@ -90,10 +110,10 @@ export class UserProductDetailComponent implements OnInit {
         this.loading.set(false);
         this.product.set(res.data);
         this.patchEditForm(res.data);
-        // Once we have the product, fetch the shop via the contributor's shops
         if (res.data?.contributorId) {
           this.fetchShop(res.data.shopId);
         }
+        this.fetchReviews();
       },
       error: (err) => {
         this.loading.set(false);
@@ -103,7 +123,7 @@ export class UserProductDetailComponent implements OnInit {
     });
   }
 
-  /** Fetch the shop that owns this product by searching with the shopId */
+  /** Fetch the shop that owns this product */
   private fetchShop(shopId: string): void {
     this.loadingShop.set(true);
     this.shopService.findById(shopId).subscribe({
@@ -113,6 +133,20 @@ export class UserProductDetailComponent implements OnInit {
       },
       error: () => {
         this.loadingShop.set(false);
+      },
+    });
+  }
+
+  fetchReviews(): void {
+    this.loadingReviews.set(true);
+    this.reviewService.findAllByProductId(this.productId).subscribe({
+      next: (res) => {
+        this.loadingReviews.set(false);
+        this.reviews.set(res.data ?? []);
+        this.reviewPage.set(0);
+      },
+      error: () => {
+        this.loadingReviews.set(false);
       },
     });
   }
@@ -146,6 +180,7 @@ export class UserProductDetailComponent implements OnInit {
     const c = this.editForm.get(field);
     return !!(c?.invalid && c?.touched);
   }
+
 
   onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -264,5 +299,25 @@ export class UserProductDetailComponent implements OnInit {
           this.toastr.error(err?.error?.message ?? 'Purchase failed.');
         },
       });
+  }
+
+  /** Total star count summed for bar widths */
+  totalReviewCount(p: ProductResponse): number {
+    return (p.oneStarRatingCount ?? 0)
+      + (p.twoStarRatingCount ?? 0)
+      + (p.threeStarRatingCount ?? 0)
+      + (p.fourStarRatingCount ?? 0)
+      + (p.fiveStarRatingCount ?? 0);
+  }
+
+  starCountFor(p: ProductResponse, star: number): number {
+    const map: Record<number, number> = {
+      1: p.oneStarRatingCount ?? 0,
+      2: p.twoStarRatingCount ?? 0,
+      3: p.threeStarRatingCount ?? 0,
+      4: p.fourStarRatingCount ?? 0,
+      5: p.fiveStarRatingCount ?? 0,
+    };
+    return map[star] ?? 0;
   }
 }

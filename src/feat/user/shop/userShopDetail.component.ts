@@ -10,7 +10,7 @@ import { ShopService, ShopResponse, AddressResponse } from '../../../shared/serv
 import { ProductService, ProductResponse } from '../../../shared/service/product.service';
 import { ToastrService } from 'ngx-toastr';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
-import { DecimalPipe, DatePipe, Location } from '@angular/common';  
+import { DecimalPipe, DatePipe, Location } from '@angular/common';
 import { PaginationBarComponent } from '../../../shared/component/paginationBar.component';
 
 @Component({
