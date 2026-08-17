@@ -1,156 +1,96 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnInit,
-  signal,
-  computed,
-} from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import {
-  TransactionService,
-  TransactionResponse,
-  TransactionStatus,
-} from '../../../shared/service/transaction.service';
-import { ReportService } from '../../../shared/service/report.service';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
-import { DatePipe, DecimalPipe, LowerCasePipe, NgClass, SlicePipe } from '@angular/common';
+import { SubOrderService } from '../../../shared/service/sub-order.service';
+import { SubOrderResponse, SubOrderStatus } from '../../../shared/service/sub-order.service.type';
+import { ShopResponse, ShopService } from '../../../shared/service/shop.service';
+import { SnapshotItemCardComponent } from '../../../shared/component/snapshotItemCard.component';
 import { PaginationBarComponent } from '../../../shared/component/paginationBar.component';
-
-/** Tabs visible on the contributor order page, mapped to their BPMN statuses. */
-type ContributorTab = 'PENDING' | 'PACKING' | 'DELIVERING' | 'COMPLETED';
-
-interface TabConfig {
-  status: ContributorTab;
-  label: string;
-  badgeClass: string;
-  count: ReturnType<typeof signal<number>>;
-}
+import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 
 @Component({
   selector: 'app-contributor-transaction',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, NgClass, SlicePipe, LowerCasePipe, PaginationBarComponent],
+  imports: [DatePipe, DecimalPipe, RouterLink, SnapshotItemCardComponent, PaginationBarComponent],
   templateUrl: './contributorTransaction.component.html',
 })
 export class ContributorTransactionComponent implements OnInit {
-  private readonly transactionService = inject(TransactionService);
-  private readonly reportService      = inject(ReportService);
-  private readonly toastr             = inject(ToastrService);
-  private readonly router             = inject(Router);
-  private readonly fb                 = inject(FormBuilder);
+  private readonly subOrderService = inject(SubOrderService);
+  private readonly shopService = inject(ShopService);
+  private readonly toastr = inject(ToastrService);
 
-  readonly ui           = UI_CLASS_NAME;
-  readonly loading      = signal(false);
-  readonly exporting    = signal<'PDF' | 'XLSX' | null>(null);
-  readonly transactions = signal<TransactionResponse[]>([]);
-  readonly totalPages   = signal(0);
-  readonly currentPage  = signal(0);
-  readonly activeTab    = signal<ContributorTab>('PENDING');
-
-  /** Per-tab counts shown in the tab badges (loaded on init, refreshed after actions). */
-  private readonly pendingCount    = signal(0);
-  private readonly packingCount    = signal(0);
-  private readonly deliveringCount = signal(0);
-  private readonly completedCount  = signal(0);
-
-  readonly tabs: TabConfig[] = [
-    {
-      status:     'PENDING',
-      label:      'New Orders',
-      badgeClass: 'bg-amber-100 text-amber-700',
-      count:      this.pendingCount,
-    },
-    {
-      status:     'PACKING',
-      label:      'Packing',
-      badgeClass: 'bg-blue-100 text-blue-700',
-      count:      this.packingCount,
-    },
-    {
-      status:     'DELIVERING',
-      label:      'Delivering',
-      badgeClass: 'bg-violet-100 text-violet-700',
-      count:      this.deliveringCount,
-    },
-    {
-      status:     'COMPLETED',
-      label:      'Completed',
-      badgeClass: 'bg-emerald-100 text-emerald-700',
-      count:      this.completedCount,
-    },
+  readonly ui = UI_CLASS_NAME;
+  readonly loading = signal(true);
+  readonly loadingShops = signal(true);
+  readonly orders = signal<SubOrderResponse[]>([]);
+  readonly shops = signal<ShopResponse[]>([]);
+  readonly selectedShopId = signal('');
+  readonly selectedStatus = signal<SubOrderStatus | ''>('');
+  readonly currentPage = signal(0);
+  readonly totalPages = signal(0);
+  readonly totalItems = signal(0);
+  readonly pageSize = 5;
+  readonly statuses: SubOrderStatus[] = [
+    'PENDING',
+    'COMPLETED',
+    'REJECTED',
+    'CANCELLED',
+    'RETURNED',
+    'PARTIALLY_RETURNED',
   ];
 
-  readonly activeTabLabel = computed(
-    () => this.tabs.find(t => t.status === this.activeTab())?.label ?? ''
-  );
-
-  readonly filterForm = this.fb.group({
-    createdFrom: [''],
-    createdTo:   [''],
-  });
-
   ngOnInit(): void {
-    this.refreshCounts();
+    this.loadShops();
     this.load(0);
   }
 
-  /** Fetch badge counts for every tab independently. */
-  private refreshCounts(): void {
-    const tabs: ContributorTab[] = ['PENDING', 'PACKING', 'DELIVERING', 'COMPLETED'];
-    tabs.forEach(status => {
-      this.transactionService.contributorSearch({ page: 0, limit: 1, status }).subscribe({
-        next: (res) => {
-          const count = res.metaData?.totalItems ?? res.data?.length ?? 0;
-          this.setCount(status, count);
-        },
-      });
+  private loadShops(): void {
+    this.shopService.getMyShops().subscribe({
+      next: (response) => {
+        this.shops.set(response.data ?? []);
+        this.loadingShops.set(false);
+      },
+      error: () => {
+        this.loadingShops.set(false);
+        this.toastr.warning('Your shops could not be loaded. All shop orders are still available.');
+      },
     });
-  }
-
-  private setCount(status: ContributorTab, n: number): void {
-    if (status === 'PENDING')    this.pendingCount.set(n);
-    if (status === 'PACKING')    this.packingCount.set(n);
-    if (status === 'DELIVERING') this.deliveringCount.set(n);
-    if (status === 'COMPLETED')  this.completedCount.set(n);
-  }
-
-  switchTab(tab: ContributorTab): void {
-    this.activeTab.set(tab);
-    this.filterForm.reset();
-    this.load(0);
   }
 
   load(page: number): void {
     this.loading.set(true);
-    const f = this.filterForm.value;
-
-    this.transactionService.contributorSearch({
+    const filter = {
       page,
-      limit:       10,
-      status:      this.activeTab(),
-      createdFrom: f.createdFrom || undefined,
-      createdTo:   f.createdTo   || undefined,
-    }).subscribe({
-      next: (res) => {
+      limit: this.pageSize,
+      status: this.selectedStatus() || undefined,
+    };
+    const request = this.selectedShopId()
+      ? this.subOrderService.shopSearch(this.selectedShopId(), filter)
+      : this.subOrderService.contributorSearch(filter);
+
+    request.subscribe({
+      next: (response) => {
+        this.orders.set(response.data ?? []);
+        this.currentPage.set(response.metaData?.currentPage ?? page);
+        this.totalPages.set(response.metaData?.totalPages ?? (response.data?.length ? 1 : 0));
+        this.totalItems.set(response.metaData?.totalItems ?? response.data?.length ?? 0);
         this.loading.set(false);
-        this.transactions.set(res.data ?? []);
-        this.totalPages.set(res.metaData?.totalPages ?? 1);
-        this.currentPage.set(page);
       },
-      error: (err) => {
+      error: (error) => {
         this.loading.set(false);
-        this.toastr.error(err?.error?.message ?? 'Failed to load orders.');
+        this.toastr.error(error?.error?.message ?? 'Failed to load shop orders.');
       },
     });
   }
 
-  onSearch(): void { this.load(0); }
+  onShopChange(event: Event): void {
+    this.selectedShopId.set((event.target as HTMLSelectElement).value);
+    this.load(0);
+  }
 
-  onReset(): void {
-    this.filterForm.reset();
+  onStatusChange(event: Event): void {
+    this.selectedStatus.set((event.target as HTMLSelectElement).value as SubOrderStatus | '');
     this.load(0);
   }
 
@@ -159,47 +99,7 @@ export class ContributorTransactionComponent implements OnInit {
     this.load(page);
   }
 
-  viewDetail(id: string): void {
-    this.router.navigate(['/contributor/transactions', id]);
-  }
-
-  // ── Export ──────────────────────────────────────────────────────────────────
-
-  exportReport(format: 'PDF' | 'XLSX'): void {
-    if (this.exporting()) return;
-    this.exporting.set(format);
-
-    const f = this.filterForm.value;
-
-    this.reportService.exportTransactionReport({
-      exportFileName: format,
-      page:           0,
-      limit:          10_000,
-      status:         this.activeTab(),        // export only the active tab's status
-      createdFrom:    f.createdFrom || undefined,
-      createdTo:      f.createdTo   || undefined,
-    }).subscribe({
-      next: (blob) => {
-        this.exporting.set(null);
-        this.reportService.download(blob, format, `${this.activeTab().toLowerCase()}_orders`);
-        this.toastr.success(`${format} downloaded.`);
-      },
-      error: (err) => {
-        this.exporting.set(null);
-        this.toastr.error(err?.error?.message ?? 'Export failed.');
-      },
-    });
-  }
-
-  statusClass(status: TransactionStatus): string {
-    const map: Partial<Record<TransactionStatus, string>> = {
-      PENDING:    'bg-amber-100 text-amber-700',
-      PACKING:    'bg-blue-100 text-blue-700',
-      DELIVERING: 'bg-violet-100 text-violet-700',
-      COMPLETED:  'bg-emerald-100 text-emerald-700',
-      REJECTED:   'bg-red-100 text-red-700',
-      RETURNED:   'bg-slate-100 text-slate-600',
-    };
-    return map[status] ?? 'bg-slate-100 text-slate-600';
+  shopName(shopId: string): string {
+    return this.shops().find((shop) => shop.id === shopId)?.name ?? `Shop ${shopId.slice(0, 8)}`;
   }
 }

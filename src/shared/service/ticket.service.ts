@@ -3,20 +3,21 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ResponseDto } from '../dto/response.dto';
 import {
+  CancelSubOrderRequest,
   ConfirmDeliveryRequest,
   ConfirmReturnRequest,
   ConfirmTransactionRequest,
+  CreateProductReviewRequest,
   PromotionTicketResponse,
   SavePromotionRequest,
   StartBuyingProcedureRequest,
 } from './ticket.service.type';
 
-
 @Injectable({ providedIn: 'root' })
 export class TicketService {
   private readonly http = inject(HttpClient);
-  private readonly ticketBase     = '/v1/tickets/transaction-tickets';
-  private readonly promotionBase  = '/v1/tickets/promotions';
+  private readonly ticketBase = '/v1/tickets/transaction-tickets';
+  private readonly promotionBase = '/v1/tickets/promotions';
 
   // -------------------------------------------------------------------------
   // Transaction-ticket flow
@@ -32,41 +33,73 @@ export class TicketService {
   }
 
   /**
-   * Step 2 — Contributor approves or rejects the transaction.
-   * POST /transaction-tickets/{transactionId}/confirm
+   * Step 2 — Contributor approves or rejects one sub-order.
+   * POST /transaction-tickets/sub-orders/{subOrderId}/confirm
    */
-  confirmTransaction(
-    transactionId: string,
+  confirmSubOrder(
+    subOrderId: string,
     body: ConfirmTransactionRequest,
   ): Observable<ResponseDto<void>> {
     return this.http.post<ResponseDto<void>>(
-      `${this.ticketBase}/${transactionId}/confirm`,
+      `${this.ticketBase}/sub-orders/${subOrderId}/confirm`,
       body,
     );
   }
 
   /**
    * Step 3 — Contributor confirms the product was handed to the carrier.
-   * POST /transaction-tickets/{transactionId}/shipped
+   * POST /transaction-tickets/sub-orders/{subOrderId}/shipped
    */
-  confirmShipped(transactionId: string): Observable<ResponseDto<void>> {
+  confirmShipped(subOrderId: string): Observable<ResponseDto<void>> {
     return this.http.post<ResponseDto<void>>(
-      `${this.ticketBase}/${transactionId}/shipped`,
+      `${this.ticketBase}/sub-orders/${subOrderId}/shipped`,
+      {},
+    );
+  }
+
+  /** Contributor cancels a sub-order while it is packing. */
+  cancelSubOrder(subOrderId: string, body: CancelSubOrderRequest): Observable<ResponseDto<void>> {
+    return this.http.post<ResponseDto<void>>(
+      `${this.ticketBase}/sub-orders/${subOrderId}/cancel`,
+      body,
+    );
+  }
+
+  /** Buyer cancels one item before it enters delivery. */
+  cancelSnapshot(subOrderId: string, snapshotId: string): Observable<ResponseDto<void>> {
+    return this.http.post<ResponseDto<void>>(
+      `${this.ticketBase}/sub-orders/${subOrderId}/items/${snapshotId}/cancel`,
       {},
     );
   }
 
   /**
-   * Step 4 — Buyer confirms delivery outcome.
+   * Step 4 — Buyer confirms one snapshot's delivery outcome.
    * status: RECEIVED → completes; NOT_RECEIVED → retry; RETURNED → return flow.
-   * POST /transaction-tickets/{transactionId}/delivery
+   * POST /transaction-tickets/sub-orders/{subOrderId}/items/{snapshotId}/delivery
    */
   confirmDelivery(
-    transactionId: string,
+    subOrderId: string,
+    snapshotId: string,
     body: ConfirmDeliveryRequest,
   ): Observable<ResponseDto<void>> {
     return this.http.post<ResponseDto<void>>(
-      `${this.ticketBase}/${transactionId}/delivery`,
+      `${this.ticketBase}/sub-orders/${subOrderId}/items/${snapshotId}/delivery`,
+      body,
+    );
+  }
+
+  /**
+   * Step 4b — Buyer creates a product review through ticket-service.
+   * Ticket-service forwards the review to product-service and completes the
+   * matching Camunda review task.
+   */
+  createProductReview(
+    subOrderId: string,
+    body: CreateProductReviewRequest,
+  ): Observable<ResponseDto<void>> {
+    return this.http.post<ResponseDto<void>>(
+      `${this.ticketBase}/sub-orders/${subOrderId}/reviews`,
       body,
     );
   }
@@ -75,12 +108,9 @@ export class TicketService {
    * Step 5 — Contributor confirms whether the returned product was received back.
    * POST /transaction-tickets/{transactionId}/confirm-return
    */
-  confirmReturn(
-    transactionId: string,
-    body: ConfirmReturnRequest,
-  ): Observable<ResponseDto<void>> {
+  confirmReturn(snapshotId: string, body: ConfirmReturnRequest): Observable<ResponseDto<void>> {
     return this.http.post<ResponseDto<void>>(
-      `${this.ticketBase}/${transactionId}/confirm-return`,
+      `${this.ticketBase}/${snapshotId}/confirm-return`,
       body,
     );
   }
@@ -91,9 +121,7 @@ export class TicketService {
 
   /** GET /promotions */
   getPromotions(page: number, limit: number): Observable<ResponseDto<PromotionTicketResponse[]>> {
-    const params = new HttpParams()
-      .set('page', page)
-      .set('limit', limit);
+    const params = new HttpParams().set('page', page).set('limit', limit);
     return this.http.get<ResponseDto<PromotionTicketResponse[]>>(this.promotionBase, { params });
   }
 

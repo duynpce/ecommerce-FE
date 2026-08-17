@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
@@ -25,23 +19,31 @@ import { PaginationBarComponent } from '../../../../shared/component/paginationB
 })
 export class AdminTransactionComponent implements OnInit {
   private readonly transactionService = inject(TransactionService);
-  private readonly toastr             = inject(ToastrService);
-  private readonly router             = inject(Router);
-  private readonly fb                 = inject(FormBuilder);
+  private readonly toastr = inject(ToastrService);
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
 
-  readonly ui           = UI_CLASS_NAME;
-  readonly loading      = signal(false);
+  readonly ui = UI_CLASS_NAME;
+  readonly loading = signal(false);
   readonly transactions = signal<TransactionResponse[]>([]);
-  readonly totalPages   = signal(0);
-  readonly currentPage  = signal(0);
+  readonly totalPages = signal(0);
+  readonly currentPage = signal(0);
 
-  readonly statuses: TransactionStatus[] = ['PENDING', 'COMPLETED', 'FAILED', 'REVERSED'];
+  readonly statuses: TransactionStatus[] = [
+    'PENDING',
+    'COMPLETED',
+    'REJECTED',
+    'CANCELLED',
+    'RETURNED',
+    'PARTIALLY_RETURNED',
+    'FAILED',
+  ];
 
   readonly filterForm = this.fb.group({
-    productId:   [''],
-    status:      ['' as TransactionStatus | ''],
+    productId: [''],
+    status: ['' as TransactionStatus | ''],
     createdFrom: [''],
-    createdTo:   [''],
+    createdTo: [''],
   });
 
   ngOnInit(): void {
@@ -52,29 +54,36 @@ export class AdminTransactionComponent implements OnInit {
     this.loading.set(true);
     const f = this.filterForm.value;
 
-    this.transactionService.adminSearch({
-      page,
-      limit: 15,
-      productId:   f.productId   || undefined,
-      status:      (f.status     || undefined) as TransactionStatus | undefined,
-      createdFrom: f.createdFrom || undefined,
-      createdTo:   f.createdTo   || undefined,
-    }).subscribe({
-      next: (res) => {
-        this.loading.set(false);
-        this.transactions.set(res.data ?? []);
-        this.totalPages.set(res.metaData?.totalPages ?? 1);
-        this.currentPage.set(page);
-      },
-      error: (err) => {
-        this.loading.set(false);
-        this.toastr.error(err?.error?.message ?? 'Failed to load transactions.');
-      },
-    });
+    this.transactionService
+      .adminSearch({
+        page,
+        limit: 15,
+        productId: f.productId || undefined,
+        status: (f.status || undefined) as TransactionStatus | undefined,
+        createdFrom: f.createdFrom || undefined,
+        createdTo: f.createdTo || undefined,
+      })
+      .subscribe({
+        next: (res) => {
+          this.loading.set(false);
+          this.transactions.set(res.data ?? []);
+          this.totalPages.set(res.metaData?.totalPages ?? 1);
+          this.currentPage.set(page);
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.toastr.error(err?.error?.message ?? 'Failed to load transactions.');
+        },
+      });
   }
 
-  onSearch(): void { this.load(0); }
-  onReset(): void { this.filterForm.reset(); this.load(0); }
+  onSearch(): void {
+    this.load(0);
+  }
+  onReset(): void {
+    this.filterForm.reset();
+    this.load(0);
+  }
 
   goToPage(page: number): void {
     if (page < 0 || page >= this.totalPages()) return;
@@ -82,13 +91,14 @@ export class AdminTransactionComponent implements OnInit {
   }
 
   statusClass(status: TransactionStatus): string {
-     const map: Partial<Record<TransactionStatus, string>> = {
-      PENDING:    'bg-amber-100 text-amber-700',
-      PACKING:    'bg-blue-100 text-blue-700',
-      DELIVERING: 'bg-violet-100 text-violet-700',
-      COMPLETED:  'bg-emerald-100 text-emerald-700',
-      REJECTED:   'bg-red-100 text-red-700',
-      RETURNED:   'bg-slate-100 text-slate-600',
+    const map: Partial<Record<TransactionStatus, string>> = {
+      PENDING: 'bg-amber-100 text-amber-700',
+      COMPLETED: 'bg-emerald-100 text-emerald-700',
+      REJECTED: 'bg-red-100 text-red-700',
+      CANCELLED: 'bg-slate-200 text-slate-700',
+      RETURNED: 'bg-orange-100 text-orange-700',
+      PARTIALLY_RETURNED: 'bg-orange-100 text-orange-700',
+      FAILED: 'bg-red-100 text-red-700',
     };
     return map[status] ?? 'bg-slate-100 text-slate-600';
   }

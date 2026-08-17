@@ -1,48 +1,161 @@
 <div [class]="ui.pageWrapper">
-
   @if (loading()) {
     <div [class]="ui.center" class="py-24">
-      <svg class="animate-spin h-8 w-8 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+      <svg
+        class="animate-spin h-8 w-8 text-slate-400"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"
+        ></path>
       </svg>
     </div>
   } @else if (product(); as p) {
-
     <div class="mx-auto w-full max-w-4xl">
-
       <!-- Back -->
-      <a routerLink="/user/products" class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors mb-6">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      <a
+        routerLink="/user/products"
+        class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors mb-6"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+          />
         </svg>
         Back to Products
       </a>
 
       <div class="grid gap-6 md:grid-cols-2">
-
         <!-- Image card -->
         <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm overflow-hidden">
-          <div class="h-72 bg-slate-100 flex items-center justify-center">
-            @if ((editMode() && preview()) || (!editMode() && p.imgUrls?.[0])) {
-              <img [src]="editMode() ? preview()! : p.imgUrls![0]" [alt]="p.name" class="w-full h-full object-cover" />
+          <div class="relative h-72 bg-slate-100 flex items-center justify-center">
+            @if (editMode() && preview()) {
+              <img [src]="preview()!" [alt]="p.name" class="h-full w-full object-cover" />
+            } @else if (!editMode() && activeProductImage(); as imageUrl) {
+              <button
+                type="button"
+                class="group h-full w-full cursor-zoom-in"
+                aria-label="View product image full size"
+                (click)="openFullScreenImage()"
+              >
+                <img [src]="imageUrl" [alt]="p.name" class="h-full w-full object-cover" />
+                <span
+                  class="absolute bottom-3 right-3 rounded-full bg-slate-950/70 px-3 py-1.5 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  Click to enlarge
+                </span>
+              </button>
+
+              @if (p.imgUrls.length > 1) {
+                <button
+                  type="button"
+                  class="absolute left-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-700 shadow ring-1 ring-slate-200 transition hover:bg-white"
+                  aria-label="Previous product image"
+                  (click)="$event.stopPropagation(); previousImage()"
+                >
+                  <span aria-hidden="true">&#8249;</span>
+                </button>
+                <button
+                  type="button"
+                  class="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-700 shadow ring-1 ring-slate-200 transition hover:bg-white"
+                  aria-label="Next product image"
+                  (click)="$event.stopPropagation(); nextImage()"
+                >
+                  <span aria-hidden="true">&#8250;</span>
+                </button>
+                <span
+                  class="absolute left-1/2 bottom-3 -translate-x-1/2 rounded-full bg-slate-950/70 px-2.5 py-1 text-xs font-medium text-white"
+                >
+                  {{ activeImageIndex() + 1 }} / {{ p.imgUrls.length }}
+                </span>
+              }
             } @else {
-              <svg class="w-14 h-14 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+              <svg
+                class="w-14 h-14 text-slate-300"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                />
               </svg>
             }
           </div>
+
+          @if (!editMode() && p.imgUrls.length > 1) {
+            <div class="flex gap-2 overflow-x-auto border-t border-slate-100 p-3">
+              @for (imageUrl of p.imgUrls; track imageUrl; let index = $index) {
+                <button
+                  type="button"
+                  class="h-14 w-14 shrink-0 overflow-hidden rounded-lg ring-2 transition"
+                  [class]="
+                    activeImageIndex() === index
+                      ? 'ring-indigo-500'
+                      : 'ring-transparent hover:ring-slate-300'
+                  "
+                  [attr.aria-label]="'Show product image ' + (index + 1)"
+                  (click)="selectImage(index)"
+                >
+                  <img
+                    [src]="imageUrl"
+                    [alt]="p.name + ' image ' + (index + 1)"
+                    class="h-full w-full object-cover"
+                  />
+                </button>
+              }
+            </div>
+          }
 
           @if (editMode()) {
             <div class="p-4">
               <label class="cursor-pointer">
                 <span [class]="ui.buttonSecondary" class="w-full justify-center">
-                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                  <svg
+                    class="w-4 h-4 mr-1.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.75"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                    />
                   </svg>
                   Change image
                 </span>
-                <input type="file" accept="image/*" class="hidden" (change)="onFileChange($event)" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  class="hidden"
+                  (change)="onFileChange($event)"
+                />
               </label>
             </div>
           }
@@ -50,19 +163,31 @@
 
         <!-- Info / Edit card -->
         <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-6 flex flex-col gap-4">
-
           @if (!editMode()) {
             <!-- View mode -->
             <div class="flex items-start justify-between gap-2">
               <div>
-                <span class="text-xs font-medium text-slate-400 uppercase tracking-wide">{{ labelForCategory(p.category) }}</span>
+                <span class="text-xs font-medium text-slate-400 uppercase tracking-wide">{{
+                  labelForCategory(p.category)
+                }}</span>
                 <h1 class="text-xl font-bold text-slate-900 mt-0.5">{{ p.name }}</h1>
               </div>
-              @if (isContributor()) {
+              @if (isProductOwner() && userId != null) {
                 <div class="flex gap-2 shrink-0">
-                  <button [class]="ui.buttonSecondary" class="text-xs!" (click)="toggleEdit()">Edit</button>
-                  <button [class]="ui.buttonDanger" class="text-xs!" (click)="onDelete()" [disabled]="deleting()">
-                    @if (deleting()) { Deleting… } @else { Delete }
+                  <button [class]="ui.buttonSecondary" class="text-xs!" (click)="toggleEdit()">
+                    Edit
+                  </button>
+                  <button
+                    [class]="ui.buttonDanger"
+                    class="text-xs!"
+                    (click)="onDelete()"
+                    [disabled]="deleting()"
+                  >
+                    @if (deleting()) {
+                      Deleting…
+                    } @else {
+                      Delete
+                    }
                   </button>
                 </div>
               }
@@ -70,13 +195,20 @@
 
             <!-- Price + status -->
             <div class="flex items-center gap-4 flex-wrap">
-              <span class="text-2xl font-bold text-slate-900">${{ p.price | number:'1.2-2' }}</span>
+              <span class="text-2xl font-bold text-slate-900"
+                >${{ p.price | number: '1.2-2' }}</span
+              >
               <span class="text-sm text-slate-500">{{ p.quantity }} in stock</span>
               <span
                 class="text-xs font-medium px-2 py-0.5 rounded-full"
-                [class]="p.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                        : p.status === 'OUT_OF_STOCK' ? 'bg-red-50 text-red-600 ring-1 ring-red-200'
-                        : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200'">
+                [class]="
+                  p.status === 'ACTIVE'
+                    ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                    : p.status === 'OUT_OF_STOCK'
+                      ? 'bg-red-50 text-red-600 ring-1 ring-red-200'
+                      : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200'
+                "
+              >
                 {{ p.status }}
               </span>
             </div>
@@ -86,13 +218,20 @@
               <div class="flex items-center gap-4">
                 <!-- Big score -->
                 <div class="text-center shrink-0">
-                  <p class="text-4xl font-extrabold text-slate-800 leading-none">{{ (p.rating ?? 0) | number:'1.1-1' }}</p>
+                  <p class="text-4xl font-extrabold text-slate-800 leading-none">
+                    {{ p.rating ?? 0 | number: '1.1-1' }}
+                  </p>
                   <div class="flex items-center justify-center gap-0.5 mt-1">
                     @for (star of stars; track star) {
-                      <svg class="w-4 h-4"
+                      <svg
+                        class="w-4 h-4"
                         [class]="star <= (p.rating ?? 0) ? 'text-amber-400' : 'text-slate-200'"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                        />
                       </svg>
                     }
                   </div>
@@ -101,13 +240,16 @@
 
                 <!-- Per-star bars -->
                 <div class="flex-1 flex flex-col gap-1">
-                  @for (star of [5,4,3,2,1]; track star) {
+                  @for (star of [5, 4, 3, 2, 1]; track star) {
                     <div class="flex items-center gap-2">
                       <span class="text-xs text-slate-500 w-5 text-right">{{ star }}★</span>
                       <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-amber-400 rounded-full transition-all duration-300"
-                          [style.width.%]="(starCountFor(p, star) / (totalReviewCount(p) || 1)) * 100">
-                        </div>
+                        <div
+                          class="h-full bg-amber-400 rounded-full transition-all duration-300"
+                          [style.width.%]="
+                            (starCountFor(p, star) / (totalReviewCount(p) || 1)) * 100
+                          "
+                        ></div>
                       </div>
                       <span class="text-xs text-slate-400 w-4">{{ starCountFor(p, star) }}</span>
                     </div>
@@ -119,7 +261,9 @@
             <!-- Attributes -->
             @if (p.attributes && (p.attributes | keyvalue).length > 0) {
               <div class="border-t border-slate-100 pt-4">
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Attributes</p>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  Attributes
+                </p>
                 <dl class="grid grid-cols-2 gap-x-4 gap-y-1.5">
                   @for (attr of p.attributes | keyvalue; track attr.key) {
                     <dt class="text-xs text-slate-500">{{ attr.key }}</dt>
@@ -130,75 +274,174 @@
             }
 
             <!-- Buy section -->
-            <div class="mt-auto border-t border-slate-100 pt-4">
-              <p class="text-sm font-medium text-slate-700 mb-2">Purchase</p>
-              <form [formGroup]="buyForm" (ngSubmit)="onBuy()" class="flex gap-2">
-                <input
-                  type="number"
-                  formControlName="quantity"
-                  min="1"
-                  [max]="p.quantity"
-                  [class]="ui.input"
-                  class="w-24"
-                />
-                <button type="submit" [class]="ui.buttonPrimary" [disabled]="buying() || p.quantity === 0">
-                  @if (buying()) { Buying… } @else if (p.quantity === 0) { Out of stock } @else { Buy }
+            <div class="mt-auto border-t border-slate-100 pt-3">
+              <form [formGroup]="buyForm" (ngSubmit)="onAddToCart()" class="space-y-2">
+                <div class="flex items-center justify-between gap-3">
+                  <label for="purchase-quantity" class="text-sm font-medium text-slate-700"
+                    >Quantity</label
+                  >
+                  <input
+                    id="purchase-quantity"
+                    type="number"
+                    formControlName="quantity"
+                    min="1"
+                    [max]="p.quantity"
+                    [class]="ui.input"
+                    class="w-20 py-1.5! text-sm!"
+                  />
+                </div>
+                <button
+                  type="button"
+                  [class]="ui.buttonPrimary"
+                  class="w-full justify-center py-2! text-sm!"
+                  [disabled]="p.quantity === 0"
+                  (click)="onBuyNow()"
+                >
+                  @if (p.quantity === 0) {
+                    Out of stock
+                  } @else {
+                    Buy now
+                  }
+                </button>
+                <button
+                  type="submit"
+                  [class]="ui.buttonSecondary"
+                  class="w-full justify-center py-2! text-sm!"
+                  [disabled]="addingToCart() || p.quantity === 0"
+                >
+                  @if (addingToCart()) {
+                    Adding…
+                  } @else if (p.quantity === 0) {
+                    Out of stock
+                  } @else {
+                    Add to cart
+                  }
                 </button>
               </form>
             </div>
-
           } @else {
             <!-- Edit mode -->
             <div class="flex items-center justify-between">
               <h2 class="text-lg font-bold text-slate-900">Edit Product</h2>
-              <button [class]="ui.buttonSecondary" class="text-xs!" (click)="toggleEdit()">Cancel</button>
+              <button [class]="ui.buttonSecondary" class="text-xs!" (click)="toggleEdit()">
+                Cancel
+              </button>
             </div>
 
-            <form [formGroup]="editForm" (ngSubmit)="onSave()" novalidate class="flex flex-col gap-4">
-
+            <form
+              [formGroup]="editForm"
+              (ngSubmit)="onSave()"
+              novalidate
+              class="flex flex-col gap-4"
+            >
               <div class="flex flex-col gap-1">
                 <label [class]="ui.label">Name</label>
-                <input type="text" formControlName="name" [class]="ui.input" [class.border-red-400]="isFieldInvalid('name')" />
-                @if (isFieldInvalid('name')) { <p [class]="ui.errorText">Required.</p> }
+                <input
+                  type="text"
+                  formControlName="name"
+                  [class]="ui.input"
+                  [class.border-red-400]="isFieldInvalid('name')"
+                />
+                @if (isFieldInvalid('name')) {
+                  <p [class]="ui.errorText">Required.</p>
+                }
               </div>
 
               <div class="grid grid-cols-2 gap-3">
                 <div class="flex flex-col gap-1">
                   <label [class]="ui.label">Price</label>
-                  <input type="number" min="0" step="0.01" formControlName="price" [class]="ui.input" [class.border-red-400]="isFieldInvalid('price')" />
-                  @if (isFieldInvalid('price')) { <p [class]="ui.errorText">Required.</p> }
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    formControlName="price"
+                    [class]="ui.input"
+                    [class.border-red-400]="isFieldInvalid('price')"
+                  />
+                  @if (isFieldInvalid('price')) {
+                    <p [class]="ui.errorText">Required.</p>
+                  }
                 </div>
                 <div class="flex flex-col gap-1">
                   <label [class]="ui.label">Quantity</label>
-                  <input type="number" min="0" formControlName="quantity" [class]="ui.input" [class.border-red-400]="isFieldInvalid('quantity')" />
-                  @if (isFieldInvalid('quantity')) { <p [class]="ui.errorText">Required.</p> }
+                  <input
+                    type="number"
+                    min="0"
+                    formControlName="quantity"
+                    [class]="ui.input"
+                    [class.border-red-400]="isFieldInvalid('quantity')"
+                  />
+                  @if (isFieldInvalid('quantity')) {
+                    <p [class]="ui.errorText">Required.</p>
+                  }
                 </div>
               </div>
 
               <div class="flex flex-col gap-1">
                 <label [class]="ui.label">Category</label>
-                <select formControlName="category" [class]="ui.select" [class.border-red-400]="isFieldInvalid('category')">
+                <select
+                  formControlName="category"
+                  [class]="ui.select"
+                  [class.border-red-400]="isFieldInvalid('category')"
+                >
                   <option value="">Select…</option>
                   @for (cat of categories; track cat) {
                     <option [value]="cat">{{ labelForCategory(cat) }}</option>
                   }
                 </select>
-                @if (isFieldInvalid('category')) { <p [class]="ui.errorText">Required.</p> }
+                @if (isFieldInvalid('category')) {
+                  <p [class]="ui.errorText">Required.</p>
+                }
               </div>
 
               <!-- Attributes -->
               <div class="flex flex-col gap-2">
                 <div class="flex items-center justify-between">
                   <label [class]="ui.label" class="mb-0!">Attributes</label>
-                  <button type="button" [class]="ui.buttonSecondary" class="text-xs! py-1!" (click)="addAttribute()">+ Add</button>
+                  <button
+                    type="button"
+                    [class]="ui.buttonSecondary"
+                    class="text-xs! py-1!"
+                    (click)="addAttribute()"
+                  >
+                    + Add
+                  </button>
                 </div>
                 @for (row of attributeRows(); track $index) {
                   <div class="flex gap-2 items-center">
-                    <input type="text" placeholder="Key" [value]="row.key" (input)="updateAttributeKey($index, $any($event.target).value)" [class]="ui.input" class="flex-1" />
-                    <input type="text" placeholder="Value" [value]="row.value" (input)="updateAttributeValue($index, $any($event.target).value)" [class]="ui.input" class="flex-1" />
-                    <button type="button" (click)="removeAttribute($index)" class="text-slate-400 hover:text-red-500 transition-colors p-1">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    <input
+                      type="text"
+                      placeholder="Key"
+                      [value]="row.key"
+                      (input)="updateAttributeKey($index, $any($event.target).value)"
+                      [class]="ui.input"
+                      class="flex-1"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Value"
+                      [value]="row.value"
+                      (input)="updateAttributeValue($index, $any($event.target).value)"
+                      [class]="ui.input"
+                      class="flex-1"
+                    />
+                    <button
+                      type="button"
+                      (click)="removeAttribute($index)"
+                      class="text-slate-400 hover:text-red-500 transition-colors p-1"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M6 18 18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -207,29 +450,61 @@
 
               <button type="submit" [class]="ui.buttonPrimary" class="w-full" [disabled]="saving()">
                 @if (saving()) {
-                  <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+                  <svg
+                    class="animate-spin h-4 w-4 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"
+                    ></path>
                   </svg>
                   Saving…
                 } @else {
                   Save Changes
                 }
               </button>
-
             </form>
           }
-
         </div>
       </div>
 
       <!-- Shop info card -->
       <div class="mt-6">
         @if (loadingShop()) {
-          <div class="flex items-center gap-2 rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm px-5 py-4 text-sm text-slate-400">
-            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+          <div
+            class="flex items-center gap-2 rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm px-5 py-4 text-sm text-slate-400"
+          >
+            <svg
+              class="animate-spin h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"
+              ></path>
             </svg>
             Loading shop info…
           </div>
@@ -240,31 +515,56 @@
           >
             <!-- Logo -->
             @if (s.logoUrl) {
-              <img [src]="s.logoUrl" class="w-12 h-12 rounded-xl object-cover shrink-0" alt="Shop logo" />
+              <img
+                [src]="s.logoUrl"
+                class="w-12 h-12 rounded-xl object-cover shrink-0"
+                alt="Shop logo"
+              />
             } @else {
-              <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016 2.993 2.993 0 0 0 2.25-1.016 3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+              <div
+                class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0"
+              >
+                <svg
+                  class="w-6 h-6 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016 2.993 2.993 0 0 0 2.25-1.016 3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"
+                  />
                 </svg>
               </div>
             }
 
             <!-- Info -->
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-slate-400 uppercase tracking-wide mb-0.5">Sold by</p>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wide mb-0.5">
+                Sold by
+              </p>
               <p class="text-sm font-semibold text-slate-800 truncate">{{ s.name }}</p>
 
               <!-- Shop rating + sold -->
               <div class="flex items-center gap-2 mt-0.5">
                 <div class="flex items-center gap-0.5">
                   @for (star of stars; track star) {
-                    <svg class="w-3 h-3"
+                    <svg
+                      class="w-3 h-3"
                       [class]="star <= (s.rating ?? 0) ? 'text-amber-400' : 'text-slate-200'"
-                      fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                      />
                     </svg>
                   }
-                  <span class="text-xs text-slate-500 ml-0.5">{{ (s.rating ?? 0) | number:'1.1-1' }}</span>
+                  <span class="text-xs text-slate-500 ml-0.5">{{
+                    s.rating ?? 0 | number: '1.1-1'
+                  }}</span>
                 </div>
                 <span class="text-xs text-slate-400">· {{ s.soldQuantity ?? 0 }} sold</span>
               </div>
@@ -279,14 +579,28 @@
 
             <!-- Status badge + arrow -->
             <div class="flex items-center gap-3 shrink-0">
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full"
-                [class]="s.status === 'ACTIVE'
-                  ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                  : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200'">
+              <span
+                class="text-xs font-medium px-2 py-0.5 rounded-full"
+                [class]="
+                  s.status === 'ACTIVE'
+                    ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                    : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200'
+                "
+              >
                 {{ s.status }}
               </span>
-              <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              <svg
+                class="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                />
               </svg>
             </div>
           </div>
@@ -300,15 +614,41 @@
         <!-- Review list -->
         @if (loadingReviews()) {
           <div class="flex justify-center py-8">
-            <svg class="animate-spin h-6 w-6 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+            <svg
+              class="animate-spin h-6 w-6 text-slate-400"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"
+              ></path>
             </svg>
           </div>
         } @else if (reviews().length === 0) {
           <div class="flex flex-col items-center gap-2 py-10 text-slate-400">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+            <svg
+              class="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
+              />
             </svg>
             <p class="text-sm">No reviews yet. Be the first to review!</p>
           </div>
@@ -319,20 +659,29 @@
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex items-center gap-1">
                     @for (star of stars; track star) {
-                      <svg class="w-4 h-4"
+                      <svg
+                        class="w-4 h-4"
                         [class]="star <= review.rating ? 'text-amber-400' : 'text-slate-200'"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                        />
                       </svg>
                     }
-                    <span class="ml-1 text-xs font-medium text-slate-600">{{ review.rating }}/5</span>
+                    <span class="ml-1 text-xs font-medium text-slate-600"
+                      >{{ review.rating }}/5</span
+                    >
                   </div>
-                  <span class="text-xs text-slate-400 shrink-0">{{ review.createdAt | date:'mediumDate' }}</span>
+                  <span class="text-xs text-slate-400 shrink-0">{{
+                    review.createdAt | date: 'mediumDate'
+                  }}</span>
                 </div>
                 @if (review.comment) {
                   <p class="mt-2 text-sm text-slate-700">{{ review.comment }}</p>
                 }
-                <p class="mt-2 text-xs text-slate-400">User: {{ review.userId | slice:0:8 }}…</p>
+                <p class="mt-2 text-xs text-slate-400">User: {{ review.userId | slice: 0 : 8 }}…</p>
               </div>
             }
           </div>
@@ -347,8 +696,51 @@
           </div>
         }
       </div>
-
     </div>
   }
 
+  @if (fullScreenImage(); as imageUrl) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Full-size product image"
+      (click)="closeFullScreenImage()"
+    >
+      <button
+        type="button"
+        class="absolute right-5 top-5 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-2xl text-white transition hover:bg-white/20"
+        aria-label="Close full-size image"
+        (click)="closeFullScreenImage()"
+      >
+        &times;
+      </button>
+
+      @if ((product()?.imgUrls?.length ?? 0) > 1) {
+        <button
+          type="button"
+          class="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-3xl text-white transition hover:bg-white/20 md:left-8"
+          aria-label="Previous full-size image"
+          (click)="$event.stopPropagation(); previousImage()"
+        >
+          &#8249;
+        </button>
+        <button
+          type="button"
+          class="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-3xl text-white transition hover:bg-white/20 md:right-8"
+          aria-label="Next full-size image"
+          (click)="$event.stopPropagation(); nextImage()"
+        >
+          &#8250;
+        </button>
+      }
+
+      <img
+        [src]="imageUrl"
+        [alt]="product()?.name ?? 'Product image'"
+        class="max-h-[90vh] max-w-[90vw] object-contain"
+        (click)="$event.stopPropagation()"
+      />
+    </div>
+  }
 </div>

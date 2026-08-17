@@ -1,48 +1,40 @@
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { catchError, forkJoin, of } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import {
-  TransactionService,
   TransactionResponse,
+  TransactionService,
   TransactionStatus,
 } from '../../../shared/service/transaction.service';
-import { ToastrService } from 'ngx-toastr';
-import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
-import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
+import { SubOrderService } from '../../../shared/service/sub-order.service';
+import { SubOrderResponse } from '../../../shared/service/sub-order.service.type';
+import { SnapshotItemCardComponent } from '../../../shared/component/snapshotItemCard.component';
 import { PaginationBarComponent } from '../../../shared/component/paginationBar.component';
+import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
+
+interface TransactionView extends TransactionResponse {
+  subOrders: SubOrderResponse[];
+}
 
 @Component({
   selector: 'app-user-transaction',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, NgClass, PaginationBarComponent],
+  imports: [DatePipe, DecimalPipe, RouterLink, SnapshotItemCardComponent, PaginationBarComponent],
   templateUrl: './userTransaction.component.html',
 })
 export class UserTransactionComponent implements OnInit {
   private readonly transactionService = inject(TransactionService);
-  private readonly toastr             = inject(ToastrService);
-  private readonly router             = inject(Router);
-  private readonly fb                 = inject(FormBuilder);
+  private readonly subOrderService = inject(SubOrderService);
+  private readonly toastr = inject(ToastrService);
 
-  readonly ui           = UI_CLASS_NAME;
-  readonly loading      = signal(false);
-  readonly transactions = signal<TransactionResponse[]>([]);
-  readonly totalPages   = signal(0);
-  readonly currentPage  = signal(0);
-
-  readonly statuses: TransactionStatus[] = ['PENDING', 'COMPLETED', 'FAILED', 'REVERSED'];
-
-  readonly filterForm = this.fb.group({
-    productId:   [''],
-    status:      ['' as TransactionStatus | ''],
-    createdFrom: [''],
-    createdTo:   [''],
-  });
+  readonly ui = UI_CLASS_NAME;
+  readonly loading = signal(true);
+  readonly transactions = signal<TransactionView[]>([]);
+  readonly currentPage = signal(0);
+  readonly totalPages = signal(0);
+  readonly pageSize = 5;
 
   ngOnInit(): void {
     this.load(0);
@@ -50,51 +42,69 @@ export class UserTransactionComponent implements OnInit {
 
   load(page: number): void {
     this.loading.set(true);
-    const f = this.filterForm.value;
+    this.transactionService.search({ page, limit: this.pageSize }).subscribe({
+      next: (response) => {
+        const transactions = response.data ?? [];
+        this.currentPage.set(response.metaData?.currentPage ?? page);
+        this.totalPages.set(response.metaData?.totalPages ?? (transactions.length ? 1 : 0));
 
-    this.transactionService.search({
-      page,
-      limit: 10,
-      productId:   f.productId   || undefined,
-      status:      (f.status     || undefined) as TransactionStatus | undefined,
-      createdFrom: f.createdFrom || undefined,
-      createdTo:   f.createdTo   || undefined,
-    }).subscribe({
-      next: (res) => {
-        this.loading.set(false);
-        this.transactions.set(res.data ?? []);
-        this.totalPages.set(res.metaData?.totalPages ?? 1);
-        this.currentPage.set(page);
+        if (!transactions.length) {
+          this.transactions.set([]);
+          this.loading.set(false);
+          return;
+        }
+
+        const requests = transactions.map((transaction) =>
+          this.subOrderService
+            .byTransaction(transaction.id)
+            .pipe(catchError(() => of({ data: [] as SubOrderResponse[] }))),
+        );
+
+        forkJoin(requests).subscribe({
+          next: (subOrderResponses) => {
+            this.transactions.set(
+              transactions.map((transaction, index) => ({
+                ...transaction,
+                subOrders: subOrderResponses[index].data ?? [],
+              })),
+            );
+            this.loading.set(false);
+          },
+          error: () => {
+            this.loading.set(false);
+            this.toastr.error('Transactions loaded, but their item details could not be loaded.');
+          },
+        });
       },
-      error: (err) => {
+      error: (error) => {
         this.loading.set(false);
-        this.toastr.error(err?.error?.message ?? 'Failed to load transactions.');
+        this.toastr.error(error?.error?.message ?? 'Failed to load transactions.');
       },
     });
   }
-
-  onSearch(): void { this.load(0); }
-  onReset(): void { this.filterForm.reset(); this.load(0); }
 
   goToPage(page: number): void {
     if (page < 0 || page >= this.totalPages()) return;
     this.load(page);
   }
 
-  viewDetail(id: string): void {
-    this.router.navigate(['/user/transactions', id]);
+  itemCount(transaction: TransactionView): number {
+    return transaction.subOrders.reduce(
+      (total, subOrder) => total + subOrder.items.reduce((sum, item) => sum + item.quantity, 0),
+      0,
+    );
   }
 
   statusClass(status: TransactionStatus): string {
-     const map: Partial<Record<TransactionStatus, string>> = {
-      PENDING:    'bg-amber-100 text-amber-700',
-      PACKING:    'bg-blue-100 text-blue-700',
-      DELIVERING: 'bg-violet-100 text-violet-700',
-      COMPLETED:  'bg-emerald-100 text-emerald-700',
-      REJECTED:   'bg-red-100 text-red-700',
-      RETURNED:   'bg-slate-100 text-slate-600',
+    const classes: Partial<Record<TransactionStatus, string>> = {
+      PENDING: 'bg-amber-100 text-amber-700',
+      COMPLETED: 'bg-emerald-100 text-emerald-700',
+      REJECTED: 'bg-red-100 text-red-700',
+      CANCELLED: 'bg-slate-200 text-slate-700',
+      RETURNED: 'bg-orange-100 text-orange-700',
+      PARTIALLY_RETURNED: 'bg-orange-100 text-orange-700',
+      FAILED: 'bg-red-100 text-red-700',
     };
-    
-    return map[status] ?? 'bg-slate-100 text-slate-600';
+    return classes[status] ?? 'bg-slate-100 text-slate-700';
   }
 }

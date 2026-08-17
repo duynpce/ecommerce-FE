@@ -3,25 +3,18 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ResponseDto } from '../dto/response.dto';
 import {
-  CreateProductReviewRequest,
   ProductReviewResponse,
   UpdateProductReviewRequest,
 } from './product-review.service.type';
 
 export type {
   ProductReviewResponse,
-  CreateProductReviewRequest,
   UpdateProductReviewRequest,
 } from './product-review.service.type';
 
 @Injectable({ providedIn: 'root' })
 export class ProductReviewService {
   private readonly http = inject(HttpClient);
-
-  // POST /v1/products/reviews/create
-  create(body: CreateProductReviewRequest): Observable<ResponseDto<void>> {
-    return this.http.post<ResponseDto<void>>(`/v1/products/reviews/create`, body);
-  }
 
   // GET /v1/products/reviews/{id}
   findById(id: string): Observable<ResponseDto<ProductReviewResponse>> {

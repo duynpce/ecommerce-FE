@@ -1,194 +1,80 @@
 <div [class]="ui.pageWrapper">
-
-  <!-- Header -->
-  <div class="mx-auto w-full max-w-5xl mb-6 flex items-start justify-between gap-4">
-    <div>
-      <h1 [class]="ui.sectionTitle">Orders</h1>
-      <p [class]="ui.sectionDescription">Manage incoming orders across all stages.</p>
-    </div>
-
-    <!-- Export buttons -->
-    <div class="flex items-center gap-2 shrink-0">
-
-      <button
-        type="button"
-        [class]="ui.buttonSecondary"
-        [disabled]="!!exporting()"
-        (click)="exportReport('XLSX')"
-        class="flex items-center gap-1.5"
-      >
-        @if (exporting() === 'XLSX') {
-          <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-          </svg>
-        } @else {
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0 1 18 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-3.75 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.5-3.75C5.496 8.25 6 8.754 6 9.375v1.5m0-5.25v5.25m0-5.25C6 5.004 6.504 4.5 7.125 4.5h9.75c.621 0 1.125.504 1.125 1.125m1.125 2.625h1.5m-1.5 0A1.125 1.125 0 0 1 18 9.375v1.5m1.5-3.75C19.496 8.25 20 8.754 20 9.375v1.5m0 0v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h1.5m16.5 0h-1.5" />
-          </svg>
-        }
-        Export XLSX
-      </button>
-
-      <button
-        type="button"
-        [class]="ui.buttonPrimary"
-        [disabled]="!!exporting()"
-        (click)="exportReport('PDF')"
-        class="flex items-center gap-1.5"
-      >
-        @if (exporting() === 'PDF') {
-          <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-          </svg>
-        } @else {
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-          </svg>
-        }
-        Export PDF
-      </button>
-
-    </div>
-  </div>
-
-  <!-- Stage tabs -->
-  <div class="mx-auto w-full max-w-5xl mb-6">
-    <div class="flex gap-1 rounded-xl bg-slate-100 p-1">
-      @for (tab of tabs; track tab.status) {
-        <button
-          type="button"
-          class="flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-          [ngClass]="activeTab() === tab.status
-            ? 'bg-white shadow-sm text-slate-900'
-            : 'text-slate-500 hover:text-slate-700'"
-          (click)="switchTab(tab.status)"
-        >
-          <span
-            class="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold"
-            [ngClass]="tab.badgeClass"
-          >{{ tab.count() }}</span>
-          {{ tab.label }}
-        </button>
-      }
-    </div>
-  </div>
-
-  <!-- Active tab description -->
-  <div class="mx-auto w-full max-w-5xl mb-4">
-    @switch (activeTab()) {
-      @case ('PENDING') {
-        <p class="text-sm text-slate-500">
-          New orders waiting for your approval. Accept or reject each order.
-        </p>
-      }
-      @case ('PACKING') {
-        <p class="text-sm text-slate-500">
-          Confirmed orders being packed. Mark each as handed to the transport agency when ready.
-        </p>
-      }
-      @case ('DELIVERING') {
-        <p class="text-sm text-slate-500">
-          Orders in transit. Waiting for customer delivery confirmation.
-        </p>
-      }
-      @case ('COMPLETED') {
-        <p class="text-sm text-slate-500">
-          Successfully delivered orders. No further action required.
-        </p>
-      }
-    }
-  </div>
-
-  <!-- Filter card
-  <div class="mx-auto w-full max-w-5xl rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 mb-6">
-    <form (ngSubmit)="onSearch()" [formGroup]="filterForm" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
-      <div>
-        <label class="mb-1 block text-sm font-medium text-slate-700">From</label>
-        <input formControlName="createdFrom" type="date" [class]="ui.input" />
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm font-medium text-slate-700">To</label>
-        <input formControlName="createdTo" type="date" [class]="ui.input" />
-      </div>
-
-      <div class="flex items-end gap-2">
-        <button type="submit" [class]="ui.buttonPrimary" [disabled]="loading()">
-          @if (loading()) {
-            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-            </svg>
-          } @else { Search }
-        </button>
-        <button type="button" [class]="ui.buttonSecondary" (click)="onReset()">Reset</button>
-      </div>
-
-    </form>
-  </div> -->
-
-  <!-- Table -->
   <div class="mx-auto w-full max-w-5xl">
+    <div class="mb-6">
+      <h1 [class]="ui.sectionTitle">My Orders</h1>
+      <p [class]="ui.sectionDescription">View each shop sub-order, its purchased item snapshots, and item-level progress.</p>
+    </div>
+
+    <div class="mb-6 grid gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:grid-cols-2">
+      <div>
+        <label class="mb-1 block text-sm font-medium text-slate-700" for="shop-filter">Shop</label>
+        <select id="shop-filter" [class]="ui.select" [value]="selectedShopId()" [disabled]="loadingShops()" (change)="onShopChange($event)">
+          <option value="">All my shops</option>
+          @for (shop of shops(); track shop.id) {
+            <option [value]="shop.id">{{ shop.name }}</option>
+          }
+        </select>
+        <p class="mt-1 text-xs text-slate-400">Selecting a shop uses the shop-specific sub-order API.</p>
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm font-medium text-slate-700" for="status-filter">Sub-order status</label>
+        <select id="status-filter" [class]="ui.select" [value]="selectedStatus()" (change)="onStatusChange($event)">
+          <option value="">All statuses</option>
+          @for (status of statuses; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="mb-4 flex items-center justify-between text-sm text-slate-500">
+      <p>{{ totalItems() }} sub-orders</p>
+      @if (selectedShopId()) {
+        <p>Showing {{ shopName(selectedShopId()) }}</p>
+      } @else {
+        <p>Showing all shops</p>
+      }
+    </div>
 
     @if (loading()) {
-      <div [class]="ui.center" class="py-20">
-        <svg class="animate-spin h-8 w-8 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-        </svg>
-      </div>
-    } @else if (transactions().length === 0) {
-      <div [class]="ui.center" class="flex-col gap-2 py-24 text-slate-400">
-        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-.375c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v.375c0 .621.504 1.125 1.125 1.125z" />
-        </svg>
-        <p class="text-sm">No {{ activeTabLabel() | lowercase }} orders.</p>
-      </div>
+      <div [class]="ui.center" class="py-20 text-sm text-slate-500">Loading shop orders…</div>
+    } @else if (!orders().length) {
+      <div [class]="ui.card" class="py-16 text-center text-slate-500">No sub-orders match these filters.</div>
     } @else {
-      <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm overflow-hidden">
-        <table class="w-full text-sm">
-          <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Order ID</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Product ID</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Qty</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Total</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Stage</th>
-              <th class="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            @for (tx of transactions(); track tx.id) {
-              <tr class="hover:bg-slate-50 transition-colors">
-                <td class="px-4 py-3 font-mono text-xs text-slate-400 truncate max-w-[100px]">{{ tx.id | slice:0:8 }}…</td>
-                <td class="px-4 py-3 font-mono text-xs text-slate-500 truncate max-w-[120px]">{{ tx.productId | slice:0:8 }}…</td>
-                <td class="px-4 py-3 text-slate-700">{{ tx.quantity }}</td>
-                <td class="px-4 py-3 font-medium text-slate-900">${{ +tx.totalAmount | number:'1.2-2' }}</td>
-                <td class="px-4 py-3 text-slate-500 text-xs">{{ tx.createdAt | date:'mediumDate' }}</td>
-                <td class="px-4 py-3">
-                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium" [ngClass]="statusClass(tx.status)">
-                    {{ tx.status }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-right">
-                  <button
-                    [class]="ui.buttonSecondary"
-                    class="text-xs! py-1! px-2.5!"
-                    (click)="viewDetail(tx.id)"
-                  >View</button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+      <div class="space-y-6">
+        @for (order of orders(); track order.id) {
+          <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <header class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h2 class="font-semibold text-slate-900">Sub-order #{{ order.id.slice(0, 8) }}</h2>
+                  <span class="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">{{ order.status }}</span>
+                </div>
+                <p class="mt-1 text-xs text-slate-500">
+                  {{ shopName(order.shopId) }} · {{ order.createdAt | date:'medium' }} · {{ order.items.length }} products
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-slate-900">${{ order.totalAmount | number:'1.2-2' }}</p>
+                <a [routerLink]="['/contributor/transactions', order.id]" class="mt-1 inline-flex text-xs font-medium text-indigo-600 hover:text-indigo-800">
+                  Manage sub-order →
+                </a>
+              </div>
+            </header>
+
+            <div class="space-y-3 p-5">
+              @for (item of order.items; track item.id) {
+                <app-snapshot-item-card [item]="item" />
+              } @empty {
+                <p class="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500">This sub-order has no item snapshots.</p>
+              }
+            </div>
+          </section>
+        }
       </div>
 
-      <!-- Pagination -->
-      <div class="mt-6">
+      <div class="mt-7">
         <app-pagination-bar
           [currentPage]="currentPage()"
           [totalPages]="totalPages()"
@@ -196,6 +82,5 @@
         />
       </div>
     }
-
   </div>
 </div>

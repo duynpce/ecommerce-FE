@@ -7,7 +7,7 @@ export type ProductCategory =
   | 'MEDICALS'
   | 'ELSE';
 
-export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK' | 'PENDING'| 'LOCKED';
+export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK' | 'PENDING' | 'LOCKED';
 
 export interface ProductResponse {
   id: string;
@@ -20,7 +20,7 @@ export interface ProductResponse {
   quantity: number;
   category: ProductCategory;
   status: ProductStatus;
-  attributes: Record<string, string>;
+  attributes?: Record<string, string> | null;
   rating?: number;
   soldQuantity?: number;
   oneStarRatingCount?: number;

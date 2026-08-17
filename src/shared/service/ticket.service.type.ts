@@ -12,13 +12,17 @@ export type PromotionTicketStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface StartBuyingProcedureRequest {
   transactionId: string;
-  contributorId: string;
   customerId: string;
+  subOrders?: unknown[];
 }
 
 export interface ConfirmTransactionRequest {
   /** true = approve, false = reject */
   approve: boolean;
+}
+
+export interface CancelSubOrderRequest {
+  reason: string;
 }
 
 export interface ConfirmDeliveryRequest {
@@ -28,6 +32,14 @@ export interface ConfirmDeliveryRequest {
 export interface ConfirmReturnRequest {
   /** true = returned product received back; false = not received */
   received: boolean;
+}
+
+export interface CreateProductReviewRequest {
+  productId: string;
+  transactionId: string;
+  snapshotId: string;
+  rating: number;
+  comment?: string;
 }
 
 // ---------------------------------------------------------------------------

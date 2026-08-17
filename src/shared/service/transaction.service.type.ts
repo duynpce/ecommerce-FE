@@ -1,38 +1,31 @@
 export type TransactionStatus =
-  | 'PENDING'
-  | 'PACKING'
-  | 'DELIVERING'
-  | 'NOT_RECEIVED'
-  | 'COMPLETED'
-  | 'REJECTED'
-  | 'RETURNED'
-  | 'FAILED'
-  | 'REVERSED';
+  'PENDING' | 'COMPLETED' | 'REJECTED' | 'CANCELLED' | 'RETURNED' | 'PARTIALLY_RETURNED' | 'FAILED';
 
 export interface TransactionResponse {
   id: string;
-  productId: string;
-  contributorId: string;
   customerId: string;
-  quantity: number;
-  totalAmount: number | string;
+  subOrderIds: string[];
+  totalAmount: number;
+  discountAmount?: number;
+  voucherId?: string;
+  voucherCode?: string;
+  description?: string;
   status: TransactionStatus;
-  isReviewed: boolean;
   createdAt: string;
+  updatedAt?: string;
+  productId?: string;
+  contributorId?: string;
+  quantity?: number;
+  isReviewed?: boolean;
 }
 
-export interface CreateTransactionRequest {
+export interface CreateTransactionItemRequest {
   productId: string;
   quantity: number;
-  price: number;
 }
-
-export interface UpdateTransactionRequest {
-  id: string;
-  quantity?: number;
-  price?: number;
+export interface CreateTransactionRequest {
+  items: CreateTransactionItemRequest[];
 }
-
 export interface TransactionFilter {
   productId?: string;
   status?: TransactionStatus;

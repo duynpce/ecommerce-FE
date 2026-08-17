@@ -1,0 +1,88 @@
+<article
+  class="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-indigo-200 hover:shadow-sm"
+>
+  <div class="flex gap-4">
+    <a
+      [routerLink]="['/user/products', item().productId]"
+      class="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100"
+    >
+      @if (item().imageUrl) {
+        <img [src]="item().imageUrl" [alt]="item().name" class="h-full w-full object-cover" />
+      } @else {
+        <span class="flex h-full items-center justify-center text-xs text-slate-400">No image</span>
+      }
+    </a>
+
+    <div class="min-w-0 flex-1">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <a
+            [routerLink]="['/user/products', item().productId]"
+            class="font-semibold text-slate-900 hover:text-indigo-600"
+          >
+            {{ item().name }}
+          </a>
+          <p class="mt-1 text-sm text-slate-500">
+            {{ item().quantity }} × ${{ item().price | number: '1.2-2' }}
+          </p>
+        </div>
+        <div class="text-right">
+          <span
+            class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
+            [class]="statusClass(item().status)"
+          >
+            {{ item().status }}
+          </span>
+          <p class="mt-2 font-semibold text-slate-900">${{ item().subtotal | number: '1.2-2' }}</p>
+        </div>
+      </div>
+
+      <a
+        [routerLink]="['/user/products', item().productId]"
+        class="mt-2 inline-flex text-xs font-medium text-indigo-600 hover:text-indigo-800"
+      >
+        View product details →
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-5 border-t border-slate-100 pt-4" aria-label="Item status progress">
+    <div class="flex">
+      @for (stage of stages; track stage.key; let last = $last) {
+        <div class="relative flex flex-1 flex-col items-center">
+          @if (!last) {
+            <div
+              class="absolute left-1/2 top-2 h-0.5 w-full"
+              [class]="isReached(stages[$index + 1].key) ? 'bg-indigo-500' : 'bg-slate-200'"
+            ></div>
+          }
+          <span
+            class="relative z-10 h-4 w-4 rounded-full border-2"
+            [class]="
+              isCurrent(stage.key)
+                ? 'border-indigo-600 bg-white ring-4 ring-indigo-100'
+                : isReached(stage.key)
+                  ? 'border-indigo-600 bg-indigo-600'
+                  : 'border-slate-300 bg-white'
+            "
+          ></span>
+          <span
+            class="mt-2 text-center text-[10px] font-medium sm:text-xs"
+            [class]="
+              isReached(stage.key) || isCurrent(stage.key) ? 'text-slate-700' : 'text-slate-400'
+            "
+          >
+            {{ stage.label }}
+          </span>
+        </div>
+      }
+    </div>
+
+    @if (terminalStatus()) {
+      <p class="mt-3 rounded-lg px-3 py-2 text-xs font-medium" [class]="statusClass(item().status)">
+        This item is {{ item().status.toLowerCase() }} and no longer follows the normal delivery
+        path.
+      </p>
+    }
+  </div>
+</article>

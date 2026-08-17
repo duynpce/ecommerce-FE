@@ -25,8 +25,11 @@ export class AuthService {
     return this.http
       .get<ResponseDto<boolean>>(`/v1/auth/${getStoredAuthServer()}/me`)
       .pipe(
-        map((res) => res.isSuccess && res.data === true),
-        catchError(() => of(false)),
+        map((res) => {
+          localStorage.setItem('userId', res.data.toString());
+          return res.isSuccess;
+        }),
+        catchError(() => of(false))
       );
   }
 

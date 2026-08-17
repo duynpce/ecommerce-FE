@@ -90,6 +90,6 @@ export class contributorMyProductsComponent implements OnInit {
   }
 
   viewDetail(id: string): void {
-    this.router.navigate(['/contributor/products', id]);
+    this.router.navigate(['/user/products', id]);
   }
 }

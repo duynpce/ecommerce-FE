@@ -1,152 +1,200 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   inject,
   OnInit,
   signal,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import {
-  TransactionService,
-  TransactionResponse,
-  TransactionStatus,
-} from '../../../shared/service/transaction.service';
-import { TicketService } from '../../../shared/service/ticket.service';
-import { DeliveryStatus } from '../../../shared/service/ticket.service.type';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import {
+  TransactionResponse,
+  TransactionService,
+} from '../../../shared/service/transaction.service';
+import {
+  ProductSnapshotResponse,
+  SubOrderResponse,
+} from '../../../shared/service/sub-order.service.type';
+import { SubOrderService } from '../../../shared/service/sub-order.service';
+import { TicketService } from '../../../shared/service/ticket.service';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
-import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
-import { ProductReviewService } from '../../../shared/service/product-review.service';
+import { SnapshotItemCardComponent } from '../../../shared/component/snapshotItemCard.component';
+import { ShopResponse, ShopService } from '../../../shared/service/shop.service';
+import { interval } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-user-transaction-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, NgClass, RouterLink],
+  imports: [RouterLink, DatePipe, DecimalPipe, SnapshotItemCardComponent],
   templateUrl: './userTransactionDetail.component.html',
 })
 export class UserTransactionDetailComponent implements OnInit {
-  private readonly route              = inject(ActivatedRoute);
-  private readonly router             = inject(Router);
-  private readonly fb                 = inject(FormBuilder);
-  private readonly transactionService = inject(TransactionService);
-  private readonly ticketService      = inject(TicketService);
-  private readonly toastr             = inject(ToastrService);
-  private readonly reviewService      = inject(ProductReviewService);
-
-  readonly ui            = UI_CLASS_NAME;
-  readonly loading       = signal(false);
-  readonly saving        = signal(false);
-  readonly deleting      = signal(false);
-  readonly confirming    = signal<DeliveryStatus | null>(null);
-  readonly transaction   = signal<TransactionResponse | null>(null);
-  readonly editMode      = signal(false);
+  private readonly route = inject(ActivatedRoute);
+  private readonly txService = inject(TransactionService);
+  private readonly subService = inject(SubOrderService);
+  private readonly tickets = inject(TicketService);
+  private readonly shopService = inject(ShopService);
+  private readonly toastr = inject(ToastrService);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly ui = UI_CLASS_NAME;
+  readonly loading = signal(true);
+  readonly acting = signal<string | null>(null);
+  readonly transaction = signal<TransactionResponse | null>(null);
+  readonly orders = signal<SubOrderResponse[]>([]);
+  readonly shopsById = signal<Record<string, ShopResponse>>({});
+  readonly reviewingSnapshotId = signal<string | null>(null);
+  readonly reviewRating = signal(5);
+  readonly reviewComment = signal('');
   readonly submittingReview = signal(false);
-  readonly stars = [1, 2, 3, 4, 5];
-
-  readonly editForm = this.fb.group({
-    quantity: [null as number | null, [Validators.min(1)]],
-    price:    [null as number | string | null, [Validators.min(0)]],
-    status:   ['' as TransactionStatus | ''],
-  });
-
-  readonly reviewForm = this.fb.group({
-    rating: [5, [Validators.required, Validators.min(1), Validators.max(5)]],
-    comment: [''],
-  });
-
-  private txId!: string;
 
   ngOnInit(): void {
-    this.txId = this.route.snapshot.paramMap.get('id')!;
-    this.fetch();
-  }
-
-  fetch(): void {
-    this.loading.set(true);
-    this.transactionService.findById(this.txId).subscribe({
-      next: (res) => {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.txService.findById(id).subscribe({ next: (r) => this.transaction.set(r.data) });
+    this.subService.byTransaction(id).subscribe({
+      next: (r) => {
+        this.setOrders(r.data ?? []);
         this.loading.set(false);
-        this.transaction.set(res.data);
-        this.editForm.patchValue({
-          quantity: res.data.quantity,
-          price:    res.data.totalAmount,
-          status:   res.data.status,
-        });
       },
-      error: (err) => {
+      error: (e) => {
         this.loading.set(false);
-        this.toastr.error(err?.error?.message ?? 'Failed to load transaction.');
-        this.router.navigate(['/user/transactions']);
+        this.toastr.error(e?.error?.message ?? 'Failed to load order details.');
       },
     });
+
+    interval(5000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.hasActiveDeliveryTimer()) {
+          this.reload(id);
+        }
+      });
   }
 
-
-  /** Called when the buyer picks a delivery outcome while status is DELIVERING. */
-  onConfirmDelivery(status: DeliveryStatus): void {
-    const labels: Record<DeliveryStatus, string> = {
-      RECEIVED:     'Mark as received?',
-      NOT_RECEIVED: 'Mark as not received?',
-      RETURNED:     'Return this product? This cannot be undone.',
-    };
-    if (!confirm(labels[status])) return;
-
-    this.confirming.set(status);
-    this.ticketService.confirmDelivery(this.txId, { status }).subscribe({
+  confirmDelivery(
+    order: SubOrderResponse,
+    item: ProductSnapshotResponse,
+    status: 'RECEIVED' | 'NOT_RECEIVED' | 'RETURNED',
+  ): void {
+    this.acting.set(item.id);
+    this.tickets.confirmDelivery(order.id, item.id, { status }).subscribe({
       next: () => {
-        this.confirming.set(null);
-        this.toastr.success('Delivery confirmation sent.');
-        this.fetch(); // refresh to reflect new status
+        this.acting.set(null);
+        this.toastr.success('Delivery response sent.');
+        this.reload(order.transactionId);
       },
-      error: (err) => {
-        this.confirming.set(null);
-        this.toastr.error(err?.error?.message ?? 'Failed to confirm delivery.');
+      error: (e) => {
+        this.acting.set(null);
+        this.toastr.error(e?.error?.message ?? 'Action failed.');
       },
     });
   }
 
+  cancelItem(order: SubOrderResponse, item: ProductSnapshotResponse): void {
+    if (!this.canCancel(item) || this.acting()) return;
+    if (!confirm(`Cancel ${item.name}? This action cannot be undone.`)) return;
 
-  isReviewFieldInvalid(field: string): boolean {
-    const c = this.reviewForm.get(field);
-    return !!(c?.invalid && c?.touched);
+    this.acting.set(item.id);
+    this.tickets.cancelSnapshot(order.id, item.id).subscribe({
+      next: () => {
+        this.acting.set(null);
+        this.toastr.success(`${item.name} was cancelled.`);
+        this.reload(order.transactionId);
+      },
+      error: (error) => {
+        this.acting.set(null);
+        this.toastr.error(error?.error?.message ?? 'Could not cancel this item.');
+      },
+    });
   }
 
-  onSubmitReview(): void {
-    if (this.reviewForm.invalid) {
-      this.reviewForm.markAllAsTouched();
-      return;
+  private reload(id: string): void {
+    this.subService.byTransaction(id).subscribe((r) => this.setOrders(r.data ?? []));
+  }
+
+  shopName(shopId: string): string {
+    return this.shopsById()[shopId]?.name ?? 'Loading shop…';
+  }
+
+  private setOrders(orders: SubOrderResponse[]): void {
+    this.orders.set(orders);
+    const loadedShops = this.shopsById();
+    const shopIds = [...new Set(orders.map((order) => order.shopId))];
+
+    for (const shopId of shopIds) {
+      if (loadedShops[shopId]) continue;
+
+      this.shopService.findById(shopId).subscribe({
+        next: (response) => {
+          if (!response.data) return;
+          this.shopsById.update((shops) => ({ ...shops, [shopId]: response.data }));
+        },
+        error: () => {
+          this.toastr.warning('A shop name could not be loaded.');
+        },
+      });
     }
+  }
+
+  canConfirmDelivery(item: ProductSnapshotResponse): boolean {
+    return item.status === 'DELIVERED_AWAITING_CONFIRMATION';
+  }
+
+  canCancel(item: ProductSnapshotResponse): boolean {
+    return item.status === 'PENDING' || item.status === 'PACKING';
+  }
+
+  canReview(item: ProductSnapshotResponse): boolean {
+    return item.status === 'RECEIVED' && !item.isReviewed;
+  }
+
+  private hasActiveDeliveryTimer(): boolean {
+    return this.orders().some((order) =>
+      order.items.some(
+        (item) => item.status === 'DELIVERING' || item.status === 'DELIVERED_AWAITING_CONFIRMATION',
+      ),
+    );
+  }
+
+  startReview(item: ProductSnapshotResponse): void {
+    this.reviewingSnapshotId.set(item.id);
+    this.reviewRating.set(5);
+    this.reviewComment.set('');
+  }
+
+  cancelReview(): void {
+    this.reviewingSnapshotId.set(null);
+  }
+
+  updateReviewComment(comment: string): void {
+    this.reviewComment.set(comment);
+  }
+
+  submitReview(order: SubOrderResponse, item: ProductSnapshotResponse): void {
+    if (!this.canReview(item) || this.submittingReview()) return;
+
     this.submittingReview.set(true);
-    this.reviewService
-      .create({
-        productId:     this.transaction()?.productId || '',
-        transactionId: this.txId,
-        rating:        this.reviewForm.value.rating!,
-        comment:       this.reviewForm.value.comment || '',
+    this.tickets
+      .createProductReview(order.id, {
+        productId: item.productId,
+        transactionId: order.transactionId,
+        snapshotId: item.id,
+        rating: this.reviewRating(),
+        comment: this.reviewComment().trim() || undefined,
       })
       .subscribe({
         next: () => {
           this.submittingReview.set(false);
-          this.toastr.success('Review submitted!');
-          this.reviewForm.reset({ rating: 5 }); 
+          this.reviewingSnapshotId.set(null);
+          this.toastr.success(`${item.name} was reviewed.`);
+          this.reload(order.transactionId);
         },
-        error: (err) => {
+        error: (error) => {
           this.submittingReview.set(false);
-          this.toastr.error(err?.error?.message ?? 'Failed to submit review.');
+          this.toastr.error(error?.error?.message ?? 'Could not submit the review.');
         },
       });
-  }
-  
-
-  statusClass(status: TransactionStatus): string {
-    const map: Record<string, string> = {
-      PENDING:    'bg-amber-100 text-amber-700',
-      COMPLETED:  'bg-emerald-100 text-emerald-700',
-      FAILED:     'bg-red-100 text-red-700',
-      REVERSED:   'bg-slate-100 text-slate-600',
-      DELIVERING: 'bg-blue-100 text-blue-700',
-    };
-    return map[status] ?? 'bg-slate-100 text-slate-600';
   }
 }

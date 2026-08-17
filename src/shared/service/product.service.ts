@@ -10,7 +10,13 @@ import {
   UpdateProductRequest,
 } from './product.service.type';
 
-export type { ProductCategory, ProductResponse, CreateProductRequest, UpdateProductRequest, ProductFilter } from './product.service.type';
+export type {
+  ProductCategory,
+  ProductResponse,
+  CreateProductRequest,
+  UpdateProductRequest,
+  ProductFilter,
+} from './product.service.type';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -24,9 +30,9 @@ export class ProductService {
         // Append each image file under the same key
         (val as File[]).forEach((file) => fd.append('imgs', file, file.name));
       } else if (key === 'attributes' && typeof val === 'object' && val !== null) {
-      Object.entries(val as Record<string, string>).forEach(([attrKey, attrVal]) => {
-      fd.append(`attributes[${attrKey}]`, attrVal);
-      });
+        Object.entries(val as Record<string, string>).forEach(([attrKey, attrVal]) => {
+          fd.append(`attributes[${attrKey}]`, attrVal);
+        });
       } else if (val instanceof File) {
         fd.append(key, val, val.name);
       } else {
@@ -38,25 +44,17 @@ export class ProductService {
 
   // POST /api/v1/products
   create(body: CreateProductRequest): Observable<ResponseDto<void>> {
-    return this.http.post<ResponseDto<void>>(
-      `/v1/products/create`,
-      this.toFormData(body),
-    );
+    return this.http.post<ResponseDto<void>>(`/v1/products/create`, this.toFormData(body));
   }
 
   // GET /api/v1/products/{id}
   findById(id: string): Observable<ResponseDto<ProductResponse>> {
-    return this.http.get<ResponseDto<ProductResponse>>(
-      `/v1/products/${id}`,
-    );
+    return this.http.get<ResponseDto<ProductResponse>>(`/v1/products/${id}`);
   }
 
   // PUT /api/v1/products/{id}
   update(id: string, body: UpdateProductRequest): Observable<ResponseDto<ProductResponse>> {
-    return this.http.put<ResponseDto<ProductResponse>>(
-      `/v1/products/${id}`,
-      this.toFormData(body),
-    );
+    return this.http.put<ResponseDto<ProductResponse>>(`/v1/products/${id}`, this.toFormData(body));
   }
 
   // DELETE /api/v1/products/{id}
@@ -66,29 +64,43 @@ export class ProductService {
 
   // GET /api/v1/products/search
   search(filter: ProductFilter): Observable<ResponseDto<ProductResponse[]>> {
-    let params = new HttpParams()
-      .set('page', filter.page)
-      .set('limit', filter.limit);
+    const params = this.toSearchParams(filter);
 
-    if (filter.name)          params = params.set('name', filter.name);
-    if (filter.category)      params = params.set('category', filter.category);
+    return this.http.get<ResponseDto<ProductResponse[]>>(`/v1/products/search`, { params });
+  }
+
+  // GET /api/v1/products/pending
+  getPendingProducts(filter: ProductFilter): Observable<ResponseDto<ProductResponse[]>> {
+    return this.http.get<ResponseDto<ProductResponse[]>>(`/v1/products/pending`, {
+      params: this.toSearchParams(filter),
+    });
+  }
+
+  // PATCH /api/v1/products/censor/{id}?isApproved={boolean}
+  censor(id: string, isApproved: boolean): Observable<ResponseDto<void>> {
+    return this.http.patch<ResponseDto<void>>(`/v1/products/censor/${id}`, null, {
+      params: { isApproved },
+    });
+  }
+
+  private toSearchParams(filter: ProductFilter): HttpParams {
+    let params = new HttpParams().set('page', filter.page).set('limit', filter.limit);
+
+    if (filter.name) params = params.set('name', filter.name);
+    if (filter.category) params = params.set('category', filter.category);
     if (filter.contributorId) params = params.set('contributorId', filter.contributorId);
     if (filter.minPrice != null) params = params.set('minPrice', filter.minPrice);
     if (filter.maxPrice != null) params = params.set('maxPrice', filter.maxPrice);
-    if (filter.createdFrom)   params = params.set('createdFrom', filter.createdFrom);
-    if (filter.createdTo)     params = params.set('createdTo', filter.createdTo);
-    if(filter.shopId)         params = params.set('shopId', filter.shopId);
+    if (filter.createdFrom) params = params.set('createdFrom', filter.createdFrom);
+    if (filter.createdTo) params = params.set('createdTo', filter.createdTo);
+    if (filter.shopId) params = params.set('shopId', filter.shopId);
 
-    return this.http.get<ResponseDto<ProductResponse[]>>(
-      `/v1/products/search`,
-      { params },
-    );
+    return params;
   }
 
   getMyProducts(page: number, limit: number): Observable<ResponseDto<ProductResponse[]>> {
-    return this.http.get<ResponseDto<ProductResponse[]>>(
-      `/v1/products/me`,
-      { params: { page, limit } },
-    );
+    return this.http.get<ResponseDto<ProductResponse[]>>(`/v1/products/me`, {
+      params: { page, limit },
+    });
   }
 }

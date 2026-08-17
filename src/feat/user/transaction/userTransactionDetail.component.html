@@ -1,218 +1,196 @@
 <div [class]="ui.pageWrapper">
+  <div class="mx-auto w-full max-w-4xl">
+    <a
+      routerLink="/user/transactions"
+      class="mb-6 inline-flex text-sm text-slate-500 hover:text-slate-800"
+      >← Back to transactions</a
+    >
 
-  @if (loading()) {
-    <div [class]="ui.center" class="py-24">
-      <svg class="animate-spin h-8 w-8 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-      </svg>
-    </div>
-  } @else if (transaction(); as tx) {
-
-    <div class="mx-auto w-full max-w-2xl">
-
-      <!-- Back -->
-      <a routerLink="/user/transactions" class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors mb-6">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-        </svg>
-        Back to Transactions
-      </a>
-
-      <div [class]="ui.card">
-
-        <!-- Header row -->
-        <div class="flex items-start justify-between gap-3 mb-4">
-          <div>
-            <h1 [class]="ui.sectionTitle" class="text-lg!">Transaction Detail</h1>
-            <p class="text-xs font-mono text-slate-400 mt-0.5">{{ tx.id }}</p>
-          </div>
+    @if (transaction(); as transaction) {
+      <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 [class]="ui.sectionTitle">Transaction #{{ transaction.id.slice(0, 8) }}</h1>
+          <p [class]="ui.sectionDescription">
+            {{ transaction.createdAt | date: 'medium' }} · {{ transaction.subOrderIds.length }} shop
+            orders
+          </p>
         </div>
+        <div class="text-right">
+          <span
+            class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
+            >{{ transaction.status }}</span
+          >
+          <p class="mt-2 text-xl font-bold text-slate-900">
+            ${{ transaction.totalAmount | number: '1.2-2' }}
+          </p>
+        </div>
+      </header>
+    }
 
-        @if (!editMode()) {
-
-          <!-- View mode: info grid -->
-          <dl class="grid grid-cols-2 gap-x-6 gap-y-4">
-
-            <div>
-              <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</dt>
-              <dd class="mt-1">
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" [ngClass]="statusClass(tx.status)">
-                  {{ tx.status }}
-                </span>
-              </dd>
-            </div>
-
-            <div>
-              <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</dt>
-              <dd class="mt-1 text-sm text-slate-700">
-                @if (tx.createdAt) {
-                  {{ tx.createdAt | date:'medium' }}
-                } @else {
-                  <span class="text-slate-400 italic">—</span>
-                }
-              </dd>
-            </div>
-
-            <div>
-              <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Quantity</dt>
-              <dd class="mt-1 text-sm font-semibold text-slate-900">{{ tx.quantity ?? '—' }}</dd>
-            </div>
-
-            <div>
-              <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Amount</dt>
-              <dd class="mt-1 text-sm font-semibold text-slate-900">
-                @if (tx.totalAmount != null) {
-                  ${{ +tx.totalAmount | number:'1.2-2' }}
-                } @else {
-                  <span class="text-slate-400 italic">—</span>
-                }
-              </dd>
-            </div>
-
-            <div class="col-span-2">
-              <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Product ID</dt>
-              <dd class="mt-1 text-xs font-mono text-slate-600 break-all">{{ tx.productId }}</dd>
-            </div>
-
-            <div class="col-span-2">
-              <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Contributor ID</dt>
-              <dd class="mt-1 text-xs font-mono text-slate-600 break-all">{{ tx.contributorId }}</dd>
-            </div>
-
-            <div class="col-span-2">
-              <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Customer ID</dt>
-              <dd class="mt-1 text-xs font-mono text-slate-600 break-all">{{ tx.customerId }}</dd>
-            </div>
-
-          </dl>
-
-          <!-- ── Delivery confirmation panel (only when DELIVERING) ───────── -->
-          @if (tx.status === 'DELIVERING') {
-            <div class="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <p class="text-sm font-semibold text-blue-800 mb-1">Confirm delivery outcome</p>
-              <p class="text-xs text-blue-600 mb-4">Your order is on its way. Let us know how the delivery went.</p>
-
-              <div class="grid grid-cols-3 gap-3">
-
-                <!-- Received -->
-                <button
-                  (click)="onConfirmDelivery('RECEIVED')"
-                  [disabled]="!!confirming()"
-                  class="flex flex-col items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-3 text-center text-xs font-medium text-emerald-700 shadow-sm transition hover:bg-emerald-50 hover:border-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  @if (confirming() === 'RECEIVED') {
-                    <svg class="animate-spin h-5 w-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-                    </svg>
-                  } @else {
-                    <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
-                  }
-                  <span>Received</span>
-                </button>
-
-                <!-- Not received -->
-                <button
-                  (click)="onConfirmDelivery('NOT_RECEIVED')"
-                  [disabled]="!!confirming()"
-                  class="flex flex-col items-center gap-2 rounded-lg border border-amber-200 bg-white px-3 py-3 text-center text-xs font-medium text-amber-700 shadow-sm transition hover:bg-amber-50 hover:border-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  @if (confirming() === 'NOT_RECEIVED') {
-                    <svg class="animate-spin h-5 w-5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-                    </svg>
-                  } @else {
-                    <svg class="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                    </svg>
-                  }
-                  <span>Not Received</span>
-                </button>
-
-                <!-- Return -->
-                <button
-                  (click)="onConfirmDelivery('RETURNED')"
-                  [disabled]="!!confirming()"
-                  class="flex flex-col items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-3 text-center text-xs font-medium text-red-700 shadow-sm transition hover:bg-red-50 hover:border-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  @if (confirming() === 'RETURNED') {
-                    <svg class="animate-spin h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-                    </svg>
-                  } @else {
-                    <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
-                    </svg>
-                  }
-                  <span>Return Product</span>
-                </button>
-
-              </div>
-            </div>
-          }
-
-          @if (tx.status == 'COMPLETED' && !tx.isReviewed) {
-            
-        <!-- Write review form -->
-          <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-6 mb-6">
-            <h3 class="text-sm font-semibold text-slate-700 mb-4">You have not reviewed this product yet</h3>
-            <h3 class="text-sm font-semibold text-slate-700 mb-4">Write a Review</h3>
-            <form [formGroup]="reviewForm" (ngSubmit)="onSubmitReview()" novalidate class="flex flex-col gap-4">
-
-              <div class="flex flex-col gap-1">
-                <label [class]="ui.label">Rating </label>
-                <div class="flex items-center gap-2">
-                  @for (star of stars; track star) {
-                    <button
-                      type="button"
-                      (click)="reviewForm.get('rating')!.setValue(star)"
-                      class="focus:outline-none transition-transform hover:scale-110"
-                    >
-                      <svg class="w-7 h-7"
-                        [class]="star <= (reviewForm.get('rating')!.value ?? 0) ? 'text-amber-400' : 'text-slate-200'"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                      </svg>
-                    </button>
-                  }
-                  <span class="text-sm text-slate-600 font-medium ml-1">{{ reviewForm.get('rating')!.value }}/5</span>
+    @if (loading()) {
+      <div [class]="ui.center" class="py-20 text-sm text-slate-500">Loading purchased items…</div>
+    } @else {
+      <div class="space-y-5">
+        @for (order of orders(); track order.id) {
+          <section [class]="ui.card">
+            <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="font-semibold text-slate-900">Shop order #{{ order.id.slice(0, 8) }}</h2>
+                <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                  <span class="font-medium text-slate-700">{{ shopName(order.shopId) }}</span>
+                  <span class="text-slate-300" aria-hidden="true">&middot;</span>
+                  <span class="text-slate-500">{{ order.createdAt | date: 'medium' }}</span>
+                  <a
+                    [routerLink]="['/user/shops', order.shopId]"
+                    class="font-semibold text-indigo-600 transition-colors hover:text-indigo-800"
+                  >
+                    View shop details &rarr;
+                  </a>
                 </div>
               </div>
+              <span
+                class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
+                >{{ order.status }}</span
+              >
+            </div>
 
-              <div class="flex flex-col gap-1">
-                <label [class]="ui.label">Comment <span class="text-xs text-slate-400">(optional)</span></label>
-                <textarea
-                  formControlName="comment"
-                  rows="3"
-                  placeholder="Share your experience…"
-                  [class]="ui.input"
-                  class="resize-none"
-                ></textarea>
+            @if ((order.status === 'REJECTED' || order.status === 'CANCELLED') && order.note) {
+              <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                <p class="text-xs font-semibold uppercase tracking-wide text-red-600">
+                  Contributor explanation
+                </p>
+                <p class="mt-1 text-sm text-red-800">{{ order.note }}</p>
               </div>
+            }
 
-              <button type="submit" [class]="ui.buttonPrimary" class="self-start" [disabled]="submittingReview()">
-                @if (submittingReview()) {
-                  <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-                  </svg>
-                  Submitting…
-                } @else {
-                  Submit Review
-                }
-              </button>
-            </form>
+            <div class="space-y-3">
+              @for (item of order.items; track item.id) {
+                <div>
+                  <app-snapshot-item-card [item]="item" />
+
+                  @if (canConfirmDelivery(item)) {
+                    <div class="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+                      <p class="text-sm text-slate-700">
+                        Confirm the delivery result for {{ item.name }}.
+                      </p>
+                      <div class="mt-3 flex flex-wrap gap-2">
+                        <button
+                          [class]="ui.buttonPrimary"
+                          [disabled]="acting() !== null"
+                          (click)="confirmDelivery(order, item, 'RECEIVED')"
+                        >
+                          {{ acting() === item.id ? 'Confirming…' : 'Received' }}
+                        </button>
+                        <button
+                          [class]="ui.buttonSecondary"
+                          [disabled]="acting() !== null"
+                          (click)="confirmDelivery(order, item, 'NOT_RECEIVED')"
+                        >
+                          Not received
+                        </button>
+                        <button
+                          [class]="ui.buttonDanger"
+                          [disabled]="acting() !== null"
+                          (click)="confirmDelivery(order, item, 'RETURNED')"
+                        >
+                          Return
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  @if (canCancel(item)) {
+                    <div class="mt-2 flex justify-end">
+                      <button
+                        [class]="ui.buttonDanger"
+                        class="text-xs!"
+                        [disabled]="acting() !== null"
+                        (click)="cancelItem(order, item)"
+                      >
+                        {{ acting() === item.id ? 'Cancelling…' : 'Cancel item' }}
+                      </button>
+                    </div>
+                  }
+
+                  @if (canReview(item) && reviewingSnapshotId() !== item.id) {
+                    <div class="mt-2 flex justify-end">
+                      <button
+                        [class]="ui.buttonPrimary"
+                        class="text-xs!"
+                        (click)="startReview(item)"
+                      >
+                        Review item
+                      </button>
+                    </div>
+                  }
+
+                  @if (reviewingSnapshotId() === item.id) {
+                    <div class="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+                      <h3 class="text-sm font-semibold text-slate-900">Review {{ item.name }}</h3>
+                      <div class="mt-3 flex items-center gap-1">
+                        @for (star of [1, 2, 3, 4, 5]; track star) {
+                          <button
+                            type="button"
+                            class="text-2xl leading-none"
+                            [class]="star <= reviewRating() ? 'text-amber-400' : 'text-slate-300'"
+                            [attr.aria-label]="star + ' stars'"
+                            (click)="reviewRating.set(star)"
+                          >
+                            ★
+                          </button>
+                        }
+                      </div>
+                      <textarea
+                        rows="3"
+                        [class]="ui.input"
+                        class="mt-3 resize-none bg-white"
+                        placeholder="Share your experience (optional)"
+                        [value]="reviewComment()"
+                        (input)="updateReviewComment($any($event.target).value)"
+                      ></textarea>
+                      <div class="mt-3 flex gap-2">
+                        <button
+                          [class]="ui.buttonPrimary"
+                          [disabled]="submittingReview()"
+                          (click)="submitReview(order, item)"
+                        >
+                          {{ submittingReview() ? 'Submitting…' : 'Submit review' }}
+                        </button>
+                        <button
+                          [class]="ui.buttonSecondary"
+                          [disabled]="submittingReview()"
+                          (click)="cancelReview()"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <dl class="mt-4 grid grid-cols-3 gap-3 border-t border-slate-100 pt-4 text-sm">
+              <div>
+                <dt class="text-slate-500">Subtotal</dt>
+                <dd class="font-semibold">${{ order.subTotalAmount | number: '1.2-2' }}</dd>
+              </div>
+              <div>
+                <dt class="text-slate-500">Shipping</dt>
+                <dd class="font-semibold">${{ order.shippingFee | number: '1.2-2' }}</dd>
+              </div>
+              <div class="text-right">
+                <dt class="text-slate-500">Total</dt>
+                <dd class="font-bold">${{ order.totalAmount | number: '1.2-2' }}</dd>
+              </div>
+            </dl>
+          </section>
+        } @empty {
+          <div [class]="ui.card" class="py-12 text-center text-slate-500">
+            No sub-orders were returned.
           </div>
-          }
-          <!-- ──────────────────────────────────────────────────────────────── -->
-        } 
+        }
       </div>
-    </div>
-  }
-
+    }
+  </div>
 </div>

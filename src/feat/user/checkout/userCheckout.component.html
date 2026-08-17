@@ -1,0 +1,100 @@
+<div [class]="ui.pageWrapper">
+  <div class="mx-auto w-full max-w-4xl">
+    @if (draft(); as checkout) {
+      <a
+        [routerLink]="backLink()"
+        class="mb-6 inline-flex text-sm text-slate-500 hover:text-slate-800"
+      >
+        ← Back
+      </a>
+
+      <div class="mb-6">
+        <h1 [class]="ui.sectionTitle">Review your transaction</h1>
+        <p [class]="ui.sectionDescription">
+          Check the products and quantities below. The transaction is only created after you
+          confirm.
+        </p>
+      </div>
+
+      <div class="grid gap-6 lg:grid-cols-[1fr_300px]">
+        <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+          <header class="border-b border-slate-100 bg-slate-50 px-5 py-4">
+            <h2 class="font-semibold text-slate-900">Products</h2>
+            <p class="mt-1 text-xs text-slate-500">
+              {{ checkout.source === 'cart' ? 'Selected from your cart' : 'Buy now' }}
+            </p>
+          </header>
+
+          <div class="divide-y divide-slate-100">
+            @for (item of checkout.items; track item.productId) {
+              <article class="flex gap-4 p-5">
+                <a
+                  [routerLink]="['/user/products', item.productId]"
+                  class="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100"
+                >
+                  @if (item.imageUrl) {
+                    <img
+                      [src]="item.imageUrl"
+                      [alt]="item.name"
+                      class="h-full w-full object-cover"
+                    />
+                  }
+                </a>
+                <div class="min-w-0 flex-1">
+                  <a
+                    [routerLink]="['/user/products', item.productId]"
+                    class="font-semibold text-slate-900 hover:text-indigo-600"
+                  >
+                    {{ item.name }}
+                  </a>
+                  <p class="mt-1 text-sm text-slate-500">
+                    ${{ item.price | number: '1.2-2' }} each
+                  </p>
+                  <p class="mt-2 text-sm text-slate-700">
+                    Quantity: <strong>{{ item.quantity }}</strong>
+                  </p>
+                </div>
+                <p class="font-semibold text-slate-900">${{ item.subtotal | number: '1.2-2' }}</p>
+              </article>
+            }
+          </div>
+        </section>
+
+        <aside [class]="ui.card" class="h-fit lg:sticky lg:top-6">
+          <h2 class="font-semibold text-slate-900">Transaction summary</h2>
+          <dl class="my-4 space-y-3 border-y border-slate-100 py-4 text-sm">
+            <div class="flex justify-between text-slate-600">
+              <dt>Products</dt>
+              <dd>{{ checkout.items.length }}</dd>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <dt>Total quantity</dt>
+              <dd>{{ totalQuantity() }}</dd>
+            </div>
+            <div class="flex justify-between text-base font-bold text-slate-900">
+              <dt>Total amount</dt>
+              <dd>${{ totalAmount() | number: '1.2-2' }}</dd>
+            </div>
+          </dl>
+
+          <button
+            [class]="ui.buttonPrimary"
+            class="w-full justify-center"
+            [disabled]="confirming()"
+            (click)="confirmOrder()"
+          >
+            {{ confirming() ? 'Creating transaction…' : 'Confirm purchase' }}
+          </button>
+        </aside>
+      </div>
+    } @else {
+      <div [class]="ui.card" class="py-16 text-center">
+        <h1 class="text-lg font-semibold text-slate-900">No transaction to review</h1>
+        <p class="mt-2 text-sm text-slate-500">
+          Choose Buy now on a product or select items from your cart.
+        </p>
+        <a routerLink="/user/products" [class]="ui.buttonPrimary" class="mt-5">Browse products</a>
+      </div>
+    }
+  </div>
+</div>

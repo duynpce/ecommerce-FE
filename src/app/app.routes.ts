@@ -3,12 +3,10 @@ import { adminGuard } from '../core/router-guard/adminGuard';
 import { contributorGuard } from '../core/router-guard/contributorGuard';
 
 export const routes: Routes = [
-
   // ── Auth pages — NO shell layout ────────────────────────────────────────
   {
     path: 'login',
-    loadComponent: () =>
-      import('../feat/auth/login/login.component').then((m) => m.LoginComponent),
+    loadComponent: () => import('../feat/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'register',
@@ -31,14 +29,12 @@ export const routes: Routes = [
   // ── Shell layout ─────────────────────────────────────────────────────────
   {
     path: '',
-    loadComponent: () =>
-      import('../layout/shell.component').then((m) => m.ShellComponent),
+    loadComponent: () => import('../layout/shell.component').then((m) => m.ShellComponent),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
       {
         path: 'home',
-        loadComponent: () =>
-          import('../feat/home/home.component').then((m) => m.HomeComponent),
+        loadComponent: () => import('../feat/home/home.component').then((m) => m.HomeComponent),
       },
       {
         path: 'logout',
@@ -64,9 +60,7 @@ export const routes: Routes = [
       {
         path: 'profile',
         loadComponent: () =>
-          import('../feat/user/profile/userProfile.component').then(
-            (m) => m.UserProfileComponent,
-          ),
+          import('../feat/user/profile/userProfile.component').then((m) => m.UserProfileComponent),
       },
       {
         path: 'credential',
@@ -78,9 +72,7 @@ export const routes: Routes = [
       {
         path: 'tickets/apply',
         loadComponent: () =>
-          import('../feat/user/ticket/userTicket.component').then(
-            (m) => m.UserTicketComponent,
-          ),
+          import('../feat/user/ticket/userTicket.component').then((m) => m.UserTicketComponent),
       },
 
       // Products
@@ -88,13 +80,6 @@ export const routes: Routes = [
         path: 'products',
         loadComponent: () =>
           import('../feat/user/product/userProduct.component').then((m) => m.UserProductComponent),
-      },
-      {
-        path: 'products/create',
-        loadComponent: () =>
-          import('../feat/contributor/product/contributorProductCreate.component').then(
-            (m) => m.contributorProductCreateComponent,
-          ),
       },
       {
         path: 'products/:id',
@@ -108,10 +93,24 @@ export const routes: Routes = [
       {
         path: 'shops/:id',
         loadComponent: () =>
-          import('../feat/user/shop/userShopDetail.component').then((m) => m.UserShopDetailComponent),
+          import('../feat/user/shop/userShopDetail.component').then(
+            (m) => m.UserShopDetailComponent,
+          ),
       },
 
       // Transactions
+      {
+        path: 'cart',
+        loadComponent: () =>
+          import('../feat/user/cart/userCart.component').then((m) => m.UserCartComponent),
+      },
+      {
+        path: 'checkout',
+        loadComponent: () =>
+          import('../feat/user/checkout/userCheckout.component').then(
+            (m) => m.UserCheckoutComponent,
+          ),
+      },
       {
         path: 'transactions',
         loadComponent: () =>
@@ -142,13 +141,23 @@ export const routes: Routes = [
       {
         path: 'my-shop',
         loadComponent: () =>
-          import('../feat/contributor/shop/contributorMyShop.component').then((m) => m.contributorMyShopComponent),
+          import('../feat/contributor/shop/contributorMyShop.component').then(
+            (m) => m.contributorMyShopComponent,
+          ),
       },
       {
         path: 'my-products',
         loadComponent: () =>
           import('../feat/contributor/product/contributorMyProducts.component').then(
             (m) => m.contributorMyProductsComponent,
+          ),
+      },
+
+      {
+        path: 'products/create',
+        loadComponent: () =>
+          import('../feat/contributor/product/contributorProductCreate.component').then(
+            (m) => m.contributorProductCreateComponent,
           ),
       },
 
@@ -199,6 +208,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../feat/admin/dashboard/ticket/adminTicket.component').then(
             (m) => m.AdminTicketComponent,
+          ),
+      },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('../feat/admin/dashboard/product/adminProduct.component').then(
+            (m) => m.AdminProductComponent,
           ),
       },
       {

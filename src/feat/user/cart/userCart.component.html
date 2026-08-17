@@ -1,0 +1,130 @@
+<div [class]="ui.pageWrapper">
+  <div class="mx-auto max-w-4xl">
+    <div class="mb-6 flex items-start justify-between gap-4">
+      <div>
+        <h1 [class]="ui.sectionTitle">My Cart</h1>
+        <p [class]="ui.sectionDescription">Choose the items you want to purchase now.</p>
+      </div>
+      <a routerLink="/user/products" [class]="ui.buttonSecondary">Continue shopping</a>
+    </div>
+
+    @if (loading()) {
+      <div [class]="ui.center" class="py-20">Loading cart…</div>
+    } @else if (!cart()?.items?.length) {
+      <div [class]="ui.card" class="py-16 text-center text-slate-500">Your cart is empty.</div>
+    } @else {
+      <div class="grid gap-6 lg:grid-cols-[1fr_290px]">
+        <section class="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
+          <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
+            <input
+              id="select-all-cart-items"
+              type="checkbox"
+              class="h-4 w-4 rounded border-slate-300 text-indigo-600"
+              [checked]="allSelected()"
+              (change)="toggleAll($any($event.target).checked)"
+            />
+            <label
+              for="select-all-cart-items"
+              class="cursor-pointer text-sm font-medium text-slate-700"
+            >
+              Select all ({{ cart()!.items.length }})
+            </label>
+          </div>
+
+          <div class="divide-y divide-slate-100">
+            @for (item of cart()!.items; track item.productId) {
+              <article class="flex gap-4 p-4" [class.bg-indigo-50]="isSelected(item.productId)">
+                <input
+                  type="checkbox"
+                  class="mt-8 h-4 w-4 shrink-0 rounded border-slate-300 text-indigo-600"
+                  [checked]="isSelected(item.productId)"
+                  [attr.aria-label]="'Select ' + item.name"
+                  (change)="toggleItem(item.productId, $any($event.target).checked)"
+                />
+
+                <a
+                  [routerLink]="['/user/products', item.productId]"
+                  class="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100"
+                >
+                  @if (item.imageUrl) {
+                    <img
+                      [src]="item.imageUrl"
+                      [alt]="item.name"
+                      class="h-full w-full object-cover"
+                    />
+                  }
+                </a>
+
+                <div class="min-w-0 flex-1">
+                  <a
+                    [routerLink]="['/user/products', item.productId]"
+                    class="font-semibold text-slate-800 hover:text-indigo-600"
+                  >
+                    {{ item.name }}
+                  </a>
+                  <p class="text-sm text-slate-500">${{ item.price | number: '1.2-2' }} each</p>
+                  <div class="mt-3 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                      <button
+                        [class]="ui.buttonSecondary"
+                        class="px-2! py-1!"
+                        [disabled]="changingItem() === item.productId"
+                        (click)="changeQuantity(item, item.quantity - 1)"
+                      >
+                        −
+                      </button>
+                      <span class="w-6 text-center text-sm">{{ item.quantity }}</span>
+                      <button
+                        [class]="ui.buttonSecondary"
+                        class="px-2! py-1!"
+                        [disabled]="changingItem() === item.productId"
+                        (click)="changeQuantity(item, item.quantity + 1)"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <span class="font-semibold">${{ item.subtotal | number: '1.2-2' }}</span>
+                  </div>
+                </div>
+
+                <button
+                  class="self-start text-sm text-red-600 hover:text-red-800"
+                  [disabled]="changingItem() === item.productId"
+                  (click)="remove(item)"
+                >
+                  Remove
+                </button>
+              </article>
+            }
+          </div>
+        </section>
+
+        <aside [class]="ui.card" class="h-fit lg:sticky lg:top-6">
+          <h2 class="font-semibold text-slate-900">Selected items</h2>
+          <div class="my-4 space-y-2 border-y border-slate-100 py-4 text-sm">
+            <div class="flex justify-between text-slate-600">
+              <span>Products</span><span>{{ selectedItems().length }}</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>Quantity</span><span>{{ selectedQuantity() }}</span>
+            </div>
+            <div class="flex justify-between text-base font-bold text-slate-900">
+              <span>Total</span><span>${{ selectedTotal() | number: '1.2-2' }}</span>
+            </div>
+          </div>
+          <p class="mb-4 text-xs text-slate-500">
+            Only selected items will be purchased and removed from your cart after confirmation.
+          </p>
+          <button
+            [class]="ui.buttonPrimary"
+            class="w-full justify-center"
+            [disabled]="!selectedItems().length"
+            (click)="reviewSelectedItems()"
+          >
+            Review order
+          </button>
+        </aside>
+      </div>
+    }
+  </div>
+</div>

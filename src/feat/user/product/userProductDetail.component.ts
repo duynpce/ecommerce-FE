@@ -15,45 +15,66 @@ import {
 } from '../../../shared/service/product.service';
 import { ShopService, ShopResponse } from '../../../shared/service/shop.service';
 import { ToastrService } from 'ngx-toastr';
-import { TransactionService } from '../../../shared/service/transaction.service';
-import { ProductReviewService, ProductReviewResponse } from '../../../shared/service/product-review.service';
+import { CartService } from '../../../shared/service/cart.service';
+import {
+  ProductReviewService,
+  ProductReviewResponse,
+} from '../../../shared/service/product-review.service';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
 import { DecimalPipe, KeyValuePipe, DatePipe, SlicePipe } from '@angular/common';
 import { PaginationBarComponent } from '../../../shared/component/paginationBar.component';
+import { CheckoutDraftService } from '../../../shared/service/checkout-draft.service';
 
 @Component({
   selector: 'app-user-product-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, KeyValuePipe, DecimalPipe, DatePipe, RouterLink, SlicePipe, PaginationBarComponent],
+  imports: [
+    ReactiveFormsModule,
+    KeyValuePipe,
+    DecimalPipe,
+    DatePipe,
+    RouterLink,
+    SlicePipe,
+    PaginationBarComponent,
+  ],
   templateUrl: './userProductDetail.component.html',
 })
 export class UserProductDetailComponent implements OnInit {
-  private readonly route              = inject(ActivatedRoute);
-  private readonly router             = inject(Router);
-  private readonly fb                 = inject(FormBuilder);
-  private readonly productService     = inject(ProductService);
-  private readonly shopService        = inject(ShopService);
-  private readonly transactionService = inject(TransactionService);
-  private readonly reviewService      = inject(ProductReviewService);
-  private readonly toastr             = inject(ToastrService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly productService = inject(ProductService);
+  private readonly shopService = inject(ShopService);
+  private readonly cartService = inject(CartService);
+  private readonly checkoutDraftService = inject(CheckoutDraftService);
+  private readonly reviewService = inject(ProductReviewService);
+  private readonly toastr = inject(ToastrService);
 
-  readonly ui            = UI_CLASS_NAME;
-  readonly loading       = signal(false);
-  readonly saving        = signal(false);
-  readonly deleting      = signal(false);
-  readonly buying        = signal(false);
-  readonly loadingShop   = signal(false);
+  readonly ui = UI_CLASS_NAME;
+  readonly loading = signal(false);
+  readonly saving = signal(false);
+  readonly deleting = signal(false);
+  readonly addingToCart = signal(false);
+  readonly loadingShop = signal(false);
   readonly loadingReviews = signal(false);
-  readonly isContributor = signal(false);
-  readonly product       = signal<ProductResponse | null>(null);
-  readonly shop          = signal<ShopResponse | null>(null);
-  readonly reviews       = signal<ProductReviewResponse[]>([]);
-  readonly editMode      = signal(false);
-  readonly preview       = signal<string | null>(null);
-  selectedFiles: File[]  = [];
-  previews               = signal<string[]>([]);
+  readonly isProductOwner = signal(false);
+  readonly product = signal<ProductResponse | null>(null);
+  readonly shop = signal<ShopResponse | null>(null);
+  readonly reviews = signal<ProductReviewResponse[]>([]);
+  readonly editMode = signal(false);
+  readonly preview = signal<string | null>(null);
+  readonly activeImageIndex = signal(0);
+  readonly fullScreenImage = signal<string | null>(null);
+  selectedFiles: File[] = [];
+  previews = signal<string[]>([]);
+  readonly userId = signal(localStorage.getItem('userId') ?? null);
 
-  readonly reviewPage     = signal(0);
+  readonly activeProductImage = computed(() => {
+    const images = this.product()?.imgUrls ?? [];
+    return images[this.activeImageIndex()] ?? images[0] ?? null;
+  });
+
+  readonly reviewPage = signal(0);
   readonly reviewPageSize = 5;
 
   readonly pagedReviews = computed(() => {
@@ -68,15 +89,20 @@ export class UserProductDetailComponent implements OnInit {
   readonly stars = [1, 2, 3, 4, 5];
 
   readonly categories: ProductCategory[] = [
-    'ELECTRONICS', 'CLOTHING', 'BOOKS',
-    'HOME_AND_KITCHEN', 'BEAUTY_AND_HEALTH', 'MEDICALS', 'ELSE',
+    'ELECTRONICS',
+    'CLOTHING',
+    'BOOKS',
+    'HOME_AND_KITCHEN',
+    'BEAUTY_AND_HEALTH',
+    'MEDICALS',
+    'ELSE',
   ];
 
   readonly attributeRows = signal<{ key: string; value: string }[]>([]);
 
   readonly editForm = this.fb.group({
-    name:     ['', Validators.required],
-    price:    [null as number | null, [Validators.required, Validators.min(0)]],
+    name: ['', Validators.required],
+    price: [null as number | null, [Validators.required, Validators.min(0)]],
     quantity: [null as number | null, [Validators.required, Validators.min(0)]],
     category: ['' as ProductCategory | '', Validators.required],
   });
@@ -88,18 +114,18 @@ export class UserProductDetailComponent implements OnInit {
   private productId!: string;
 
   ngOnInit(): void {
-    this.checkContributorRole();
+    this.checkProductOwner();
     this.productId = this.route.snapshot.paramMap.get('id')!;
     this.fetchProduct();
   }
 
-  private checkContributorRole(): void {
+  private checkProductOwner(): void {
     try {
       const raw = localStorage.getItem('roles');
       const roles = raw ? JSON.parse(raw) : [];
-      this.isContributor.set(Array.isArray(roles) && roles.includes('CONTRIBUTOR'));
+      this.isProductOwner.set(this.userId() === this.product()?.contributorId && Array.isArray(roles) && roles.includes('CONTRIBUTOR'));
     } catch {
-      this.isContributor.set(false);
+      this.isProductOwner.set(false);
     }
   }
 
@@ -109,6 +135,8 @@ export class UserProductDetailComponent implements OnInit {
       next: (res) => {
         this.loading.set(false);
         this.product.set(res.data);
+        this.activeImageIndex.set(0);
+        this.fullScreenImage.set(null);
         this.patchEditForm(res.data);
         if (res.data?.contributorId) {
           this.fetchShop(res.data.shopId);
@@ -155,17 +183,46 @@ export class UserProductDetailComponent implements OnInit {
     this.router.navigate(['/user/shops', shopId]);
   }
 
+  selectImage(index: number): void {
+    this.activeImageIndex.set(index);
+  }
+
+  previousImage(): void {
+    this.moveImage(-1);
+  }
+
+  nextImage(): void {
+    this.moveImage(1);
+  }
+
+  openFullScreenImage(): void {
+    this.fullScreenImage.set(this.activeProductImage());
+  }
+
+  closeFullScreenImage(): void {
+    this.fullScreenImage.set(null);
+  }
+
+  private moveImage(offset: number): void {
+    const images = this.product()?.imgUrls ?? [];
+    if (images.length < 2) return;
+
+    const nextIndex = (this.activeImageIndex() + offset + images.length) % images.length;
+    this.activeImageIndex.set(nextIndex);
+    if (this.fullScreenImage()) {
+      this.fullScreenImage.set(images[nextIndex]);
+    }
+  }
+
   patchEditForm(p: ProductResponse): void {
     this.editForm.patchValue({
-      name:     p.name,
-      price:    p.price,
+      name: p.name,
+      price: p.price,
       quantity: p.quantity,
       category: p.category,
     });
     const attrs = p.attributes ?? {};
-    this.attributeRows.set(
-      Object.entries(attrs).map(([key, value]) => ({ key, value })),
-    );
+    this.attributeRows.set(Object.entries(attrs).map(([key, value]) => ({ key, value })));
   }
 
   toggleEdit(): void {
@@ -181,7 +238,6 @@ export class UserProductDetailComponent implements OnInit {
     return !!(c?.invalid && c?.touched);
   }
 
-
   onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
@@ -193,7 +249,10 @@ export class UserProductDetailComponent implements OnInit {
     const allPreviews: string[] = [];
     files.forEach((file, i) => {
       const r = new FileReader();
-      r.onload = () => { allPreviews[i] = r.result as string; this.previews.set([...allPreviews]); };
+      r.onload = () => {
+        allPreviews[i] = r.result as string;
+        this.previews.set([...allPreviews]);
+      };
       r.readAsDataURL(file);
     });
   }
@@ -207,15 +266,11 @@ export class UserProductDetailComponent implements OnInit {
   }
 
   updateAttributeKey(index: number, key: string): void {
-    this.attributeRows.update((rows) =>
-      rows.map((r, i) => (i === index ? { ...r, key } : r)),
-    );
+    this.attributeRows.update((rows) => rows.map((r, i) => (i === index ? { ...r, key } : r)));
   }
 
   updateAttributeValue(index: number, value: string): void {
-    this.attributeRows.update((rows) =>
-      rows.map((r, i) => (i === index ? { ...r, value } : r)),
-    );
+    this.attributeRows.update((rows) => rows.map((r, i) => (i === index ? { ...r, value } : r)));
   }
 
   labelForCategory(cat: string): string {
@@ -236,18 +291,19 @@ export class UserProductDetailComponent implements OnInit {
     this.saving.set(true);
     this.productService
       .update(this.productId, {
-        id:         this.productId,
-        imgs:       this.selectedFiles.length ? this.selectedFiles : undefined,
-        name:       this.editForm.value.name!,
-        price:      this.editForm.value.price!,
-        quantity:   this.editForm.value.quantity!,
-        category:   this.editForm.value.category as ProductCategory,
+        id: this.productId,
+        imgs: this.selectedFiles.length ? this.selectedFiles : undefined,
+        name: this.editForm.value.name!,
+        price: this.editForm.value.price!,
+        quantity: this.editForm.value.quantity!,
+        category: this.editForm.value.category as ProductCategory,
         attributes: Object.keys(attrs).length ? attrs : undefined,
       })
       .subscribe({
         next: (res) => {
           this.saving.set(false);
           this.product.set(res.data);
+          this.activeImageIndex.set(0);
           this.editMode.set(false);
           this.selectedFiles = [];
           this.toastr.success('Product updated.');
@@ -275,39 +331,60 @@ export class UserProductDetailComponent implements OnInit {
     });
   }
 
-  onBuy(): void {
+  onAddToCart(): void {
     if (this.buyForm.invalid) {
       this.buyForm.markAllAsTouched();
       return;
     }
     const p = this.product()!;
-    this.buying.set(true);
-    this.transactionService
-      .create({
-        productId: p.id,
-        quantity:  this.buyForm.value.quantity!,
-        price:     p.price,
-      })
-      .subscribe({
-        next: () => {
-          this.buying.set(false);
-          this.toastr.success('Purchase successful!');
-          this.fetchProduct();
+    this.addingToCart.set(true);
+    this.cartService.addItem(p.id, this.buyForm.value.quantity!).subscribe({
+      next: () => {
+        this.addingToCart.set(false);
+        this.toastr.success('Added to cart.');
+      },
+      error: (err) => {
+        this.addingToCart.set(false);
+        this.toastr.error(err?.error?.message ?? 'Could not add this item to your cart.');
+      },
+    });
+  }
+
+  onBuyNow(): void {
+    if (this.buyForm.invalid) {
+      this.buyForm.markAllAsTouched();
+      return;
+    }
+
+    const product = this.product();
+    const quantity = this.buyForm.value.quantity;
+    if (!product || !quantity) return;
+
+    this.checkoutDraftService.save({
+      source: 'buy-now',
+      items: [
+        {
+          productId: product.id,
+          name: product.name,
+          price: Number(product.price),
+          quantity,
+          imageUrl: product.imgUrls?.[0],
+          subtotal: Number(product.price) * quantity,
         },
-        error: (err) => {
-          this.buying.set(false);
-          this.toastr.error(err?.error?.message ?? 'Purchase failed.');
-        },
-      });
+      ],
+    });
+    this.router.navigate(['/user/checkout']);
   }
 
   /** Total star count summed for bar widths */
   totalReviewCount(p: ProductResponse): number {
-    return (p.oneStarRatingCount ?? 0)
-      + (p.twoStarRatingCount ?? 0)
-      + (p.threeStarRatingCount ?? 0)
-      + (p.fourStarRatingCount ?? 0)
-      + (p.fiveStarRatingCount ?? 0);
+    return (
+      (p.oneStarRatingCount ?? 0) +
+      (p.twoStarRatingCount ?? 0) +
+      (p.threeStarRatingCount ?? 0) +
+      (p.fourStarRatingCount ?? 0) +
+      (p.fiveStarRatingCount ?? 0)
+    );
   }
 
   starCountFor(p: ProductResponse, star: number): number {

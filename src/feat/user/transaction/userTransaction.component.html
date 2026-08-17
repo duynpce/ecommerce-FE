@@ -1,108 +1,63 @@
 <div [class]="ui.pageWrapper">
-
-  <!-- Header -->
-  <div class="mx-auto w-full max-w-5xl mb-6">
-    <h1 [class]="ui.sectionTitle">My Transactions</h1>
-    <p [class]="ui.sectionDescription">View and manage your purchase history.</p>
-  </div>
-
-  <!-- Filter card -->
-  <div class="mx-auto w-full max-w-5xl rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 mb-6">
-    <form (ngSubmit)="onSearch()" [formGroup]="filterForm" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-      <div>
-        <label class="mb-1 block text-sm font-medium text-slate-700">Product ID</label>
-        <input formControlName="productId" type="text" placeholder="UUID" [class]="ui.input" />
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm font-medium text-slate-700">Status</label>
-        <select formControlName="status" [class]="ui.select">
-          <option value="">All statuses</option>
-          @for (s of statuses; track s) {
-            <option [value]="s">{{ s }}</option>
-          }
-        </select>
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm font-medium text-slate-700">From</label>
-        <input formControlName="createdFrom" type="date" [class]="ui.input" />
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm font-medium text-slate-700">To</label>
-        <input formControlName="createdTo" type="date" [class]="ui.input" />
-      </div>
-
-      <div class="flex items-end gap-2 sm:col-span-2 lg:col-span-4">
-        <button type="submit" [class]="ui.buttonPrimary" [disabled]="loading()">
-          @if (loading()) {
-            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-            </svg>
-          } @else { Search }
-        </button>
-        <button type="button" [class]="ui.buttonSecondary" (click)="onReset()">Reset</button>
-      </div>
-
-    </form>
-  </div>
-
-  <!-- Table -->
   <div class="mx-auto w-full max-w-5xl">
+    <div class="mb-6">
+      <h1 [class]="ui.sectionTitle">My Transactions</h1>
+      <p [class]="ui.sectionDescription">See every purchased item and follow its delivery progress.</p>
+    </div>
 
     @if (loading()) {
-      <div [class]="ui.center" class="py-20">
-        <svg class="animate-spin h-8 w-8 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-        </svg>
-      </div>
-    } @else if (transactions().length === 0) {
-      <div [class]="ui.center" class="flex-col gap-2 py-24 text-slate-400">
-        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
-        </svg>
-        <p class="text-sm">No transactions found.</p>
-      </div>
+      <div [class]="ui.center" class="py-20 text-sm text-slate-500">Loading transactions…</div>
+    } @else if (!transactions().length) {
+      <div [class]="ui.card" class="py-16 text-center text-slate-500">No transactions yet.</div>
     } @else {
-      <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm overflow-hidden">
-        <table class="w-full text-sm">
-          <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Product ID</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Qty</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Total</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
-              <th class="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            @for (tx of transactions(); track tx.id) {
-              <tr class="hover:bg-slate-50 transition-colors">
-                <td class="px-4 py-3 font-mono text-xs text-slate-500 truncate max-w-[140px]">{{ tx.productId }}</td>
-                <td class="px-4 py-3 text-slate-700">{{ tx.quantity }}</td>
-                <td class="px-4 py-3 font-medium text-slate-900">${{ +tx.totalAmount | number:'1.2-2' }}</td>
-                <td class="px-4 py-3">
-                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium" [ngClass]="statusClass(tx.status)">
-                    {{ tx.status }}
+      <div class="space-y-6">
+        @for (transaction of transactions(); track transaction.id) {
+          <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <header class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h2 class="font-semibold text-slate-900">Transaction #{{ transaction.id.slice(0, 8) }}</h2>
+                  <span class="rounded-full px-2.5 py-1 text-xs font-semibold" [class]="statusClass(transaction.status)">
+                    {{ transaction.status }}
                   </span>
-                </td>
-                <td class="px-4 py-3 text-slate-500 text-xs">{{ tx.createdAt | date:'mediumDate' }}</td>
-                <td class="px-4 py-3 text-right">
-                  <button [class]="ui.buttonSecondary" class="text-xs! py-1! px-2.5!" (click)="viewDetail(tx.id)">View</button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+                </div>
+                <p class="mt-1 text-xs text-slate-500">
+                  {{ transaction.createdAt | date:'medium' }} · {{ transaction.subOrders.length }} shop orders · {{ itemCount(transaction) }} items
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-slate-900">${{ transaction.totalAmount | number:'1.2-2' }}</p>
+                <a [routerLink]="['/user/transactions', transaction.id]" class="mt-1 inline-flex text-xs font-medium text-indigo-600 hover:text-indigo-800">
+                  View transaction details →
+                </a>
+              </div>
+            </header>
+
+            <div class="space-y-5 p-5">
+              @for (subOrder of transaction.subOrders; track subOrder.id) {
+                <div>
+                  <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p class="text-sm font-semibold text-slate-700">Shop order #{{ subOrder.id.slice(0, 8) }}</p>
+                      <p class="text-xs text-slate-400">Shop {{ subOrder.shopId.slice(0, 8) }}…</p>
+                    </div>
+                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{{ subOrder.status }}</span>
+                  </div>
+                  <div class="space-y-3">
+                    @for (item of subOrder.items; track item.id) {
+                      <app-snapshot-item-card [item]="item" />
+                    }
+                  </div>
+                </div>
+              } @empty {
+                <p class="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500">No item snapshots were returned for this transaction.</p>
+              }
+            </div>
+          </section>
+        }
       </div>
 
-      <!-- Pagination -->
-      <div class="mt-6">
+      <div class="mt-7">
         <app-pagination-bar
           [currentPage]="currentPage()"
           [totalPages]="totalPages()"
@@ -110,6 +65,5 @@
         />
       </div>
     }
-
   </div>
 </div>
