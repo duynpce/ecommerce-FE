@@ -1,105 +1,90 @@
 <div [class]="ui.pageWrapper">
-  <div [class]="ui.card" class="max-w-2xl! flex flex-col gap-6">
-
-    <!-- Header -->
+  <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
     <div>
-      <h1 [class]="ui.sectionTitle">Apply for Contributor</h1>
-      <p [class]="ui.sectionDescription" class="mt-1">
-        Fill in your details to submit a promotion request.
-      </p>
+      <h1 [class]="ui.sectionTitle">Role Applications</h1>
+      <p [class]="ui.sectionDescription" class="mt-1">Apply to sell products or deliver customer orders. An administrator reviews every request.</p>
     </div>
 
-    <!-- Form -->
-    <form class="flex flex-col gap-4" (ngSubmit)="onSubmit()" [formGroup]="form" novalidate>
-
-    
-      <!-- Identity Card Number -->
-      <div class="flex flex-col gap-1.5">
-        <label for="identityCardNumber" class="text-sm font-medium text-slate-700">Identity Card Number</label>
-        <input
-          id="identityCardNumber"
-          type="text"
-          formControlName="identityCardNumber"
-          placeholder="Enter your identity card number"
-          [class]="ui.input"
-          class="w-full"
-          [class.border-red-400]="isFieldInvalid('identityCardNumber')"
-        />
-        @if (isFieldInvalid('identityCardNumber')) {
-          <p class="text-xs text-red-500">Identity card number is required</p>
-        }
-      </div>
-
-      <!-- Bank Name + Account Number (side by side) -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1.5">
-          <label for="bankName" class="text-sm font-medium text-slate-700">Bank Name</label>
-          <input
-            id="bankName"
-            type="text"
-            formControlName="bankName"
-            placeholder="e.g. Vietcombank"
-            [class]="ui.input"
-            class="w-full"
-            [class.border-red-400]="isFieldInvalid('bankName')"
-          />
-          @if (isFieldInvalid('bankName')) {
-            <p class="text-xs text-red-500">Bank name is required</p>
-          }
+    <div class="grid items-start gap-6 lg:grid-cols-2">
+      <section [class]="ui.card" class="flex flex-col gap-5">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600">Seller role</p>
+          <h2 class="mt-1 text-lg font-semibold text-slate-900">Become a Contributor</h2>
+          <p class="mt-1 text-sm text-slate-500">Create shops, publish products, and manage customer sub-orders.</p>
         </div>
 
-        <div class="flex flex-col gap-1.5">
-          <label for="bankAccountNumber" class="text-sm font-medium text-slate-700">Bank Account Number</label>
-          <input
-            id="bankAccountNumber"
-            type="text"
-            formControlName="bankAccountNumber"
-            placeholder="Enter your account number"
-            [class]="ui.input"
-            class="w-full"
-            [class.border-red-400]="isFieldInvalid('bankAccountNumber')"
-          />
-          @if (isFieldInvalid('bankAccountNumber')) {
-            <p class="text-xs text-red-500">Account number is required</p>
-          }
-        </div>
-      </div>
-
-      <!-- Tax ID -->
-      <div class="flex flex-col gap-1.5">
-        <label for="taxId" class="text-sm font-medium text-slate-700">Tax ID</label>
-        <input
-          id="taxId"
-          type="text"
-          formControlName="taxId"
-          placeholder="Enter your tax ID"
-          [class]="ui.input"
-          class="w-full"
-          [class.border-red-400]="isFieldInvalid('taxId')"
-        />
-        @if (isFieldInvalid('taxId')) {
-          <p class="text-xs text-red-500">Tax ID is required</p>
-        }
-      </div>
-
-      <!-- Submit -->
-      <button
-        type="submit"
-        [class]="ui.buttonPrimary"
-        class="w-full mt-2"
-        [disabled]="loading()"
-      >
-        @if (loading()) {
-          <svg class="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
-          </svg>
-          Submitting…
+        @if (isContributor()) {
+          <div class="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-700 ring-1 ring-emerald-200">Your account already has the Contributor role.</div>
         } @else {
-          Submit Request
+          <form class="flex flex-col gap-4" [formGroup]="contributorForm" (ngSubmit)="submitContributor()" novalidate>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700" for="contributor-identity">Identity card number</label>
+              <input id="contributor-identity" [class]="ui.input" class="w-full" formControlName="identityCardNumber" placeholder="Citizen or national ID" />
+              @if (isFieldInvalid(contributorForm, 'identityCardNumber')) { <p class="mt-1 text-xs text-red-500">Identity card number is required.</p> }
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700" for="bank-name">Bank name</label>
+                <input id="bank-name" [class]="ui.input" class="w-full" formControlName="bankName" placeholder="e.g. Vietcombank" />
+              </div>
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700" for="bank-account">Account number</label>
+                <input id="bank-account" [class]="ui.input" class="w-full" formControlName="bankAccountNumber" placeholder="Bank account number" />
+              </div>
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700" for="tax-id">Tax ID</label>
+              <input id="tax-id" [class]="ui.input" class="w-full" formControlName="taxId" placeholder="Registered tax ID" />
+            </div>
+            <button [class]="ui.buttonPrimary" class="mt-1 w-full" type="submit" [disabled]="contributorLoading()">
+              {{ contributorLoading() ? 'Submitting…' : 'Submit Contributor Application' }}
+            </button>
+          </form>
         }
-      </button>
+      </section>
 
-    </form>
+      <section [class]="ui.card" class="flex flex-col gap-5">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-amber-600">Delivery role</p>
+          <h2 class="mt-1 text-lg font-semibold text-slate-900">Become a Shipper</h2>
+          <p class="mt-1 text-sm text-slate-500">Accept available pickups and report delivery outcomes.</p>
+        </div>
+
+        @if (isShipper()) {
+          <div class="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-700 ring-1 ring-emerald-200">Your account already has the Shipper role.</div>
+        } @else {
+          <form class="flex flex-col gap-4" [formGroup]="shipperForm" (ngSubmit)="submitShipper()" novalidate>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700" for="shipper-identity">Identity card number</label>
+              <input id="shipper-identity" [class]="ui.input" class="w-full" formControlName="identityCardNumber" placeholder="Citizen or national ID" />
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700" for="driver-license">Driver license number</label>
+              <input id="driver-license" [class]="ui.input" class="w-full" formControlName="driverLicenseNumber" placeholder="Valid driver license" />
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700" for="vehicle-type">Vehicle type</label>
+                <select id="vehicle-type" [class]="ui.select" class="w-full" formControlName="vehicleType">
+                  @for (type of vehicleTypes; track type) { <option [value]="type">{{ vehicleLabel(type) }}</option> }
+                </select>
+              </div>
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700" for="vehicle-plate">Vehicle plate</label>
+                <input id="vehicle-plate" [class]="ui.input" class="w-full" formControlName="vehiclePlateNumber" placeholder="e.g. 59A1-12345" />
+              </div>
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700" for="shipper-phone">Phone number</label>
+              <input id="shipper-phone" type="tel" [class]="ui.input" class="w-full" formControlName="phoneNumber" placeholder="Phone used for delivery contact" />
+              @if (isFieldInvalid(shipperForm, 'phoneNumber')) { <p class="mt-1 text-xs text-red-500">Enter a valid phone number.</p> }
+            </div>
+            <button [class]="ui.buttonPrimary" class="mt-1 w-full" type="submit" [disabled]="shipperLoading()">
+              {{ shipperLoading() ? 'Submitting…' : 'Submit Shipper Application' }}
+            </button>
+          </form>
+        }
+      </section>
+    </div>
   </div>
 </div>

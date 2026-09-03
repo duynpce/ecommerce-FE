@@ -1,41 +1,159 @@
-<div class="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4">
-  <div class="w-full max-w-sm flex flex-col items-center gap-6 text-center">
+<div class="home-page">
+  <section class="hero overflow-hidden">
+    <div class="relative z-10 mx-auto grid w-full max-w-7xl gap-14 px-6 py-16 sm:py-20 lg:grid-cols-[1.03fr_0.97fr] lg:items-center lg:px-8 lg:py-24">
+      <div class="max-w-2xl">
+        <p class="mb-5 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.24em] text-[#d9b46f]">
+          <span class="h-px w-8 bg-current"></span>
+          The marketplace for good things
+        </p>
 
-    <div>
-      <h1 class="text-2xl font-semibold text-slate-800 tracking-tight">Welcome home</h1>
-      <p class="mt-1 text-sm text-slate-500">Where would you like to go?</p>
+        <h1 class="font-display text-5xl leading-[0.98] tracking-[-0.045em] text-[#fffaf0] sm:text-6xl lg:text-7xl">
+          Find something<br />
+          <em class="font-normal text-[#efc88c]">worth keeping.</em>
+        </h1>
+
+        <p class="mt-7 max-w-xl text-base leading-7 text-[#d6e0da] sm:text-lg">
+          Discover thoughtful finds from independent sellers—made to be used, loved, and part of your everyday.
+        </p>
+
+        <form class="mt-9 flex max-w-xl flex-col gap-3 rounded-2xl bg-white p-2 shadow-[0_24px_55px_rgba(0,0,0,0.2)] sm:flex-row" (submit)="search($event)">
+          <label class="sr-only" for="home-search">Search the marketplace</label>
+          <div class="flex min-w-0 flex-1 items-center gap-3 px-3">
+            <span class="text-xl text-slate-400" aria-hidden="true">⌕</span>
+            <input id="home-search" type="search" class="min-w-0 flex-1 border-0 bg-transparent py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" placeholder="What are you looking for?" [value]="searchTerm()" (input)="updateSearch($event)" />
+          </div>
+          <button type="submit" class="rounded-xl bg-[#d85c41] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#bd4933] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Search</button>
+        </form>
+
+        <div class="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-[#b9c8bf]">
+          <span>✓ Secure checkout</span>
+          <span>✓ Independent sellers</span>
+          <span>✓ Buyer support</span>
+        </div>
+      </div>
+
+      <div class="relative mx-auto h-[440px] w-full max-w-[570px] lg:h-[510px]" aria-label="A selection of marketplace finds">
+        <div class="product-card card-lamp">
+          <div class="product-art bg-[#d8c5a3]">
+            <div class="lamp" aria-hidden="true"></div>
+            <span class="art-number">01</span>
+          </div>
+          <div class="flex items-end justify-between gap-4 p-4">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Home edit</p>
+              <p class="mt-1 font-display text-xl text-slate-900">Soft light, slow nights</p>
+            </div>
+            <span class="round-arrow" aria-hidden="true">↗</span>
+          </div>
+        </div>
+
+        <div class="product-card card-audio">
+          <div class="product-art bg-[#e8bcae]">
+            <div class="headphones" aria-hidden="true"><span></span></div>
+            <span class="art-number">02</span>
+          </div>
+          <div class="p-4">
+            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Daily tech</p>
+            <p class="mt-1 font-display text-lg text-slate-900">Better sound, beautifully</p>
+          </div>
+        </div>
+
+        <div class="floating-note">
+          <div class="flex -space-x-2" aria-hidden="true">
+            <span class="avatar bg-[#b95f49]">M</span>
+            <span class="avatar bg-[#52746a]">J</span>
+            <span class="avatar bg-[#c59a55]">A</span>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-slate-900">Loved by curious shoppers</p>
+            <p class="mt-0.5 text-xs text-slate-500">New finds added every day</p>
+          </div>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="flex flex-col gap-3 w-full">
+  <section id="categories" class="bg-[#f7f2e9] px-6 py-20 sm:py-24 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+      <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#bd563f]">Browse your way</p>
+          <h2 class="font-display mt-3 text-4xl tracking-[-0.03em] text-[#17342c] sm:text-5xl">A little bit of everything.</h2>
+        </div>
+        <a routerLink="/user/products" class="group inline-flex items-center gap-2 text-sm font-bold text-[#17342c]">View all products <span class="transition-transform group-hover:translate-x-1">→</span></a>
+      </div>
 
-      @if (isAdmin()) {
-        <a
-          routerLink="/admin"
-          class="flex items-center justify-center gap-2.5 w-full px-4 py-3 rounded-xl
-                 bg-slate-900 text-white text-sm font-medium
-                 hover:bg-slate-700 active:scale-[0.98] transition-all"
-        >
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.955 11.955 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-          </svg>
-         go to Admin Dashboard
-        </a>
-      } @else {
-        <a
-          routerLink="/user/products"
-          class="flex items-center justify-center gap-2.5 w-full px-4 py-3 rounded-xl
-                 bg-slate-900 text-white text-sm font-medium
-                 hover:bg-slate-700 active:scale-[0.98] transition-all"
-        >
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z" />
-          </svg>
-          Go to user Dashboard
-        </a>
-      }
-
+      <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        @for (category of categories; track category.value) {
+          <button type="button" class="category-card group text-left" (click)="browseCategory(category.value)">
+            <span class="category-icon {{ category.tone }}" aria-hidden="true">{{ category.icon }}</span>
+            <span class="min-w-0 flex-1">
+              <span class="block font-display text-2xl text-[#17342c]">{{ category.name }}</span>
+              <span class="mt-1 block text-sm text-slate-500">{{ category.description }}</span>
+            </span>
+            <span class="text-xl text-[#17342c] opacity-40 transition group-hover:translate-x-1 group-hover:opacity-100" aria-hidden="true">→</span>
+          </button>
+        }
+      </div>
     </div>
-  </div>
+  </section>
+
+  <section class="bg-white px-6 py-20 sm:py-24 lg:px-8">
+    <div class="mx-auto grid max-w-7xl overflow-hidden rounded-[2rem] bg-[#e8dcc8] lg:grid-cols-2">
+      <div class="flex min-h-[390px] items-center justify-center overflow-hidden p-10 sm:p-14">
+        <div class="collection-stage" aria-hidden="true">
+          <div class="collection-circle"></div>
+          <div class="book-stack"><span></span><span></span><span></span></div>
+          <div class="vase"></div>
+          <p>THE<br />SLOW<br />EDIT</p>
+        </div>
+      </div>
+      <div class="flex flex-col justify-center bg-[#f2e9db] p-9 sm:p-14 lg:p-16">
+        <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#bd563f]">The slow edit · No. 01</p>
+        <h2 class="font-display mt-4 text-4xl leading-tight tracking-[-0.03em] text-[#17342c] sm:text-5xl">Objects that make home feel more like you.</h2>
+        <p class="mt-5 max-w-lg text-base leading-7 text-slate-600">Warm textures, useful forms, and the small details that turn a room into your favorite place to be.</p>
+        <a routerLink="/user/products" [queryParams]="{ category: 'HOME_AND_KITCHEN' }" class="mt-8 inline-flex w-fit items-center gap-3 rounded-full bg-[#17342c] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#244d41]">Shop the home edit <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-[#d85c41] px-6 py-16 text-[#fffaf0] lg:px-8">
+    <div class="mx-auto grid max-w-7xl gap-10 sm:grid-cols-3">
+      <div class="border-white/25 sm:border-r sm:pr-10">
+        <span class="text-2xl" aria-hidden="true">◇</span>
+        <h3 class="font-display mt-4 text-2xl">Picked with purpose</h3>
+        <p class="mt-2 text-sm leading-6 text-white/75">Discover useful, delightful finds across every corner of the market.</p>
+      </div>
+      <div class="border-white/25 sm:border-r sm:px-10">
+        <span class="text-2xl" aria-hidden="true">◎</span>
+        <h3 class="font-display mt-4 text-2xl">People behind every product</h3>
+        <p class="mt-2 text-sm leading-6 text-white/75">Shop from independent contributors and help good ideas grow.</p>
+      </div>
+      <div class="sm:pl-10">
+        <span class="text-2xl" aria-hidden="true">⌁</span>
+        <h3 class="font-display mt-4 text-2xl">Easy from cart to door</h3>
+        <p class="mt-2 text-sm leading-6 text-white/75">Clear ordering, secure checkout, and support when you need it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-[#17342c] px-6 py-20 text-center lg:px-8">
+    <div class="mx-auto max-w-3xl">
+      <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#d9b46f]">Your next favorite thing is here</p>
+      <h2 class="font-display mt-4 text-4xl tracking-[-0.03em] text-[#fffaf0] sm:text-5xl">Good finds are meant to be found.</h2>
+      <p class="mx-auto mt-5 max-w-xl text-base leading-7 text-[#b9c8bf]">Take a look around. The market is always changing, and there is always something new to discover.</p>
+      <a [routerLink]="primaryDestination()" class="mt-8 inline-flex items-center gap-3 rounded-full bg-[#efc88c] px-7 py-4 text-sm font-bold text-[#17342c] transition hover:bg-[#f8dcae]">{{ primaryLabel() }} <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <footer class="bg-[#10251f] px-6 py-8 text-[#9fb0a7] lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-col gap-4 text-xs sm:flex-row sm:items-center sm:justify-between">
+      <p>© 2026 Morrow Market. Find good things.</p>
+      <div class="flex flex-wrap gap-5">
+        <a href="#categories" class="transition hover:text-white">Categories</a>
+        <a routerLink="/user/products" class="transition hover:text-white">Shop all</a>
+        <a routerLink="/register" class="transition hover:text-white">Join the market</a>
+      </div>
+    </div>
+  </footer>
 </div>

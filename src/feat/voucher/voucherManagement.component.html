@@ -1,0 +1,94 @@
+<div [class]="ui.pageWrapper">
+  <div class="mx-auto max-w-7xl space-y-6">
+    <section [class]="ui.card" class="max-w-none!">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 [class]="ui.sectionTitle">{{ title }}</h1>
+          <p [class]="ui.sectionDescription">Create discounts and control where and when they apply.</p>
+        </div>
+        @if (isEditing()) {
+          <button type="button" [class]="ui.buttonSecondary" (click)="resetForm()">Cancel edit</button>
+        }
+      </div>
+
+      <form class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4" [formGroup]="form" (ngSubmit)="submit()">
+        <div><label [class]="ui.label">Code</label><input [class]="ui.input" formControlName="code" placeholder="SUMMER20" /></div>
+        <div><label [class]="ui.label">Name</label><input [class]="ui.input" formControlName="name" /></div>
+        <div>
+          <label [class]="ui.label">Voucher type</label>
+          <select [class]="ui.select" formControlName="type" [attr.disabled]="isAdmin ? null : true">
+            @if (isAdmin) {
+              <option value="SHIPPING">Shipping</option>
+              <option value="PLATFORM">Platform</option>
+            }
+            <option value="SHOP">Shop</option>
+          </select>
+        </div>
+        @if (form.controls.type.value === 'SHOP') {
+          <div>
+            <label [class]="ui.label">Shop</label>
+            <select [class]="ui.select" formControlName="shopId">
+              <option value="">Select shop</option>
+              @for (shop of shops(); track shop.id) { <option [value]="shop.id">{{ shop.name }}</option> }
+            </select>
+          </div>
+        }
+        <div>
+          <label [class]="ui.label">Discount type</label>
+          <select [class]="ui.select" formControlName="discountType">
+            <option value="PERCENTAGE">Percentage</option>
+            <option value="FIXED_AMOUNT">Fixed amount</option>
+          </select>
+        </div>
+        <div><label [class]="ui.label">Discount value</label><input [class]="ui.input" type="number" min="0.01" step="0.01" formControlName="discountValue" /></div>
+        <div><label [class]="ui.label">Minimum transaction subtotal (before voucher)</label><input [class]="ui.input" type="number" min="0" step="0.01" formControlName="minimumSpend" /></div>
+        <div><label [class]="ui.label">Maximum discount (optional)</label><input [class]="ui.input" type="number" min="0.01" step="0.01" formControlName="maximumDiscount" /></div>
+        <div><label [class]="ui.label">Starts at</label><input [class]="ui.input" type="datetime-local" formControlName="startsAt" /></div>
+        <div><label [class]="ui.label">Ends at</label><input [class]="ui.input" type="datetime-local" formControlName="endsAt" /></div>
+        <div><label [class]="ui.label">Usage limit (optional)</label><input [class]="ui.input" type="number" min="1" formControlName="usageLimit" /></div>
+        <div class="flex items-end pb-2"><label class="flex items-center gap-2 text-sm font-medium text-slate-700"><input type="checkbox" formControlName="active" /> Active</label></div>
+        <div class="md:col-span-2 lg:col-span-4"><label [class]="ui.label">Description</label><textarea [class]="ui.input" rows="2" formControlName="description"></textarea></div>
+
+        <fieldset class="md:col-span-2 lg:col-span-4">
+          <legend [class]="ui.label">Applicable product categories</legend>
+          <div class="flex flex-wrap gap-2">
+            @for (category of categories; track category) {
+              <label [class]="ui.radioOption">
+                <input type="checkbox" [checked]="selectedCategories().has(category)" (change)="toggleCategory(category, $any($event.target).checked)" />
+                {{ categoryLabel(category) }}
+              </label>
+            }
+          </div>
+        </fieldset>
+
+        <div class="flex justify-end md:col-span-2 lg:col-span-4">
+          <button [class]="ui.buttonPrimary" type="submit" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : isEditing() ? 'Update voucher' : 'Create voucher' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section [class]="ui.card" class="max-w-none! overflow-x-auto">
+      <h2 class="text-lg font-bold text-slate-900">Existing vouchers</h2>
+      <table class="mt-4 min-w-full divide-y divide-slate-200 text-sm">
+        <thead><tr class="text-left text-xs uppercase tracking-wide text-slate-500"><th class="py-3 pr-4">Code</th><th class="py-3 pr-4">Scope</th><th class="py-3 pr-4">Discount</th><th class="py-3 pr-4">Categories</th><th class="py-3 pr-4">Usage</th><th class="py-3 pr-4">Validity</th><th class="py-3 text-right">Actions</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          @for (voucher of vouchers(); track voucher.id) {
+            <tr>
+              <td class="py-3 pr-4"><p class="font-bold text-slate-900">{{ voucher.code }}</p><p class="text-xs text-slate-500">{{ voucher.name }}</p></td>
+              <td class="py-3 pr-4">{{ voucher.type }} <span class="ml-1 rounded-full px-2 py-0.5 text-xs" [class]="voucher.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'">{{ voucher.active ? 'Active' : 'Inactive' }}</span></td>
+              <td class="py-3 pr-4">{{ voucher.discountType === 'PERCENTAGE' ? (voucher.discountValue + '%') : ('$' + voucher.discountValue) }}</td>
+              <td class="max-w-xs py-3 pr-4 text-xs">{{ voucher.applicableCategories.join(', ') }}</td>
+              <td class="py-3 pr-4">{{ voucher.usedCount }} / {{ voucher.usageLimit ?? '∞' }}</td>
+              <td class="py-3 pr-4 text-xs">{{ voucher.startsAt | date:'short' }}<br />{{ voucher.endsAt | date:'short' }}</td>
+              <td class="py-3 text-right"><div class="flex justify-end gap-2"><button [class]="ui.buttonSecondary" class="px-3! py-1.5! text-xs!" (click)="edit(voucher)">Edit</button><button [class]="ui.buttonDanger" class="px-3! py-1.5! text-xs!" (click)="remove(voucher)">Delete</button></div></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="7" class="py-10 text-center text-slate-500">{{ loading() ? 'Loading vouchers…' : 'No vouchers yet.' }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </div>
+</div>

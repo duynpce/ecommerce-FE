@@ -118,6 +118,19 @@ export class UserTransactionDetailComponent implements OnInit {
     return this.shopsById()[shopId]?.name ?? 'Loading shop…';
   }
 
+  productNames(order: SubOrderResponse): string {
+    return (
+      [...new Set(order.items.map((item) => item.name).filter(Boolean))].join(', ') ||
+      'Purchased items'
+    );
+  }
+
+  triggerOrder(subOrderId?: string): SubOrderResponse | undefined {
+    return subOrderId
+      ? this.orders().find((order) => order.id === subOrderId)
+      : undefined;
+  }
+
   private setOrders(orders: SubOrderResponse[]): void {
     this.orders.set(orders);
     const loadedShops = this.shopsById();

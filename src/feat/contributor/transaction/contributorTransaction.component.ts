@@ -33,6 +33,8 @@ export class ContributorTransactionComponent implements OnInit {
   readonly pageSize = 5;
   readonly statuses: SubOrderStatus[] = [
     'PENDING',
+    'WAITING_FOR_CONSOLIDATION',
+    'AWAITING_PICKUP',
     'COMPLETED',
     'REJECTED',
     'CANCELLED',

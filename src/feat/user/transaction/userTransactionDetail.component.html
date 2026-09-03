@@ -9,11 +9,15 @@
     @if (transaction(); as transaction) {
       <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 [class]="ui.sectionTitle">Transaction #{{ transaction.id.slice(0, 8) }}</h1>
+          <h1 [class]="ui.sectionTitle">Purchase details</h1>
           <p [class]="ui.sectionDescription">
             {{ transaction.createdAt | date: 'medium' }} · {{ transaction.subOrderIds.length }} shop
             orders
           </p>
+          <details class="mt-2 text-xs text-slate-500">
+            <summary class="cursor-pointer font-medium">Technical details</summary>
+            <p class="mt-1 break-all">Transaction ID: {{ transaction.id }}</p>
+          </details>
         </div>
         <div class="text-right">
           <span
@@ -23,8 +27,55 @@
           <p class="mt-2 text-xl font-bold text-slate-900">
             ${{ transaction.totalAmount | number: '1.2-2' }}
           </p>
+          @if (transaction.vouchers.length) {
+            <div class="mt-1 space-y-0.5 text-xs font-medium text-emerald-700">
+              @for (voucher of transaction.vouchers; track voucher.voucherId) {
+                <p>{{ voucher.code }} saved ${{ voucher.discountAmount | number: '1.2-2' }}</p>
+              }
+            </div>
+          }
         </div>
       </header>
+
+      @if (
+        (transaction.status === 'REJECTED' || transaction.status === 'CANCELLED') &&
+        transaction.statusReason
+      ) {
+        <section class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <p class="text-xs font-semibold uppercase tracking-wide text-red-600">
+            Transaction status reason
+          </p>
+          <p class="mt-1 text-sm text-red-800">{{ transaction.statusReason }}</p>
+          @if (triggerOrder(transaction.triggerSubOrderId); as trigger) {
+            <div class="mt-2 text-sm text-red-700">
+              <p><span class="font-semibold">Shop:</span> {{ shopName(trigger.shopId) }}</p>
+              <p><span class="font-semibold">Products:</span> {{ productNames(trigger) }}</p>
+              <details class="mt-1 text-xs">
+                <summary class="cursor-pointer font-medium">Technical details</summary>
+                <p class="mt-1 break-all">Triggering shop order ID: {{ trigger.id }}</p>
+              </details>
+            </div>
+          }
+        </section>
+      }
+
+      @if (transaction.phoneNumber || transaction.address) {
+        <section [class]="ui.card" class="mb-5">
+          <h2 class="font-semibold text-slate-900">Delivery details</h2>
+          <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <dt class="text-slate-500">Phone number</dt>
+              <dd class="mt-1 font-medium text-slate-900">{{ transaction.phoneNumber || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-slate-500">Delivery address</dt>
+              <dd class="mt-1 whitespace-pre-line font-medium text-slate-900">
+                {{ transaction.address || '—' }}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      }
     }
 
     @if (loading()) {
@@ -35,10 +86,9 @@
           <section [class]="ui.card">
             <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 class="font-semibold text-slate-900">Shop order #{{ order.id.slice(0, 8) }}</h2>
+                <h2 class="font-semibold text-slate-900">{{ shopName(order.shopId) }}</h2>
+                <p class="mt-0.5 text-sm text-slate-600">{{ productNames(order) }}</p>
                 <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                  <span class="font-medium text-slate-700">{{ shopName(order.shopId) }}</span>
-                  <span class="text-slate-300" aria-hidden="true">&middot;</span>
                   <span class="text-slate-500">{{ order.createdAt | date: 'medium' }}</span>
                   <a
                     [routerLink]="['/user/shops', order.shopId]"
@@ -47,6 +97,11 @@
                     View shop details &rarr;
                   </a>
                 </div>
+                <details class="mt-2 text-xs text-slate-400">
+                  <summary class="cursor-pointer">Technical details</summary>
+                  <p class="mt-1 break-all">Shop order ID: {{ order.id }}</p>
+                  <p class="break-all">Shop ID: {{ order.shopId }}</p>
+                </details>
               </div>
               <span
                 class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
@@ -54,19 +109,22 @@
               >
             </div>
 
-            @if ((order.status === 'REJECTED' || order.status === 'CANCELLED') && order.note) {
+            @if (
+              (order.status === 'REJECTED' || order.status === 'CANCELLED') &&
+              (order.statusReason || order.note)
+            ) {
               <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
                 <p class="text-xs font-semibold uppercase tracking-wide text-red-600">
-                  Contributor explanation
+                  Status reason
                 </p>
-                <p class="mt-1 text-sm text-red-800">{{ order.note }}</p>
+                <p class="mt-1 text-sm text-red-800">{{ order.statusReason || order.note }}</p>
               </div>
             }
 
             <div class="space-y-3">
               @for (item of order.items; track item.id) {
                 <div>
-                  <app-snapshot-item-card [item]="item" />
+                  <app-snapshot-item-card [item]="item" [subOrderStatus]="order.status" />
 
                   @if (canConfirmDelivery(item)) {
                     <div class="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-4">

@@ -30,7 +30,7 @@
 
         <div class="space-y-3">
           @for (item of order.items; track item.id) {
-            <app-snapshot-item-card [item]="item" />
+            <app-snapshot-item-card [item]="item" [subOrderStatus]="order.status" />
           }
         </div>
 
@@ -94,9 +94,7 @@
               (input)="updateDecisionDescription($any($event.target).value)"
             ></textarea>
             @if (decisionError()) {
-              <p class="mt-1 text-xs text-red-600">
-                A description is required to reject.
-              </p>
+              <p class="mt-1 text-xs text-red-600">A description is required to reject.</p>
             }
 
             <div class="mt-4 flex flex-wrap gap-2">

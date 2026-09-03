@@ -1,5 +1,12 @@
 export type SubOrderStatus =
-  'PENDING' | 'REJECTED' | 'RETURNED' | 'PARTIALLY_RETURNED' | 'CANCELLED' | 'COMPLETED';
+  | 'PENDING'
+  | 'WAITING_FOR_CONSOLIDATION'
+  | 'AWAITING_PICKUP'
+  | 'REJECTED'
+  | 'RETURNED'
+  | 'PARTIALLY_RETURNED'
+  | 'CANCELLED'
+  | 'COMPLETED';
 
 export type SnapshotStatus =
   | 'PENDING'
@@ -37,6 +44,7 @@ export interface SubOrderResponse {
   totalAmount: number;
   note?: string;
   status: SubOrderStatus;
+  statusReason?: string;
   createdAt: string;
   updatedAt?: string;
 }

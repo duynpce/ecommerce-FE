@@ -73,13 +73,8 @@ export class ContributorTransactionDetailComponent implements OnInit {
     if (!description) return;
 
     this.acting.set(true);
-    this.service.updateNote(this.id, `Rejected by contributor: ${description}`).subscribe({
-      next: () => {
-        this.tickets.confirmSubOrder(this.id, { approve: false }).subscribe({
-          next: () => this.finishDecision('Sub-order rejected.'),
-          error: (error) => this.failDecision(error),
-        });
-      },
+    this.tickets.confirmSubOrder(this.id, { approve: false, reason: description }).subscribe({
+      next: () => this.finishDecision('Sub-order rejected.'),
       error: (error) => this.failDecision(error),
     });
   }

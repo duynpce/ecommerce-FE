@@ -1,126 +1,64 @@
 <div [class]="ui.pageWrapper">
-  <div class="flex flex-col gap-6 w-full max-w-5xl mx-auto">
-
-    <!-- Header -->
+  <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
     <div>
-      <h1 [class]="ui.sectionTitle">Promotion Requests</h1>
-      <p [class]="ui.sectionDescription" class="mt-1">
-        Review and action pending contributor promotion requests.
-      </p>
+      <h1 [class]="ui.sectionTitle">Role Applications</h1>
+      <p [class]="ui.sectionDescription" class="mt-1">Review customer requests and grant Contributor or Shipper access.</p>
     </div>
 
-    <!-- Ticket table -->
+    <div class="inline-flex w-fit rounded-xl bg-slate-100 p-1 ring-1 ring-slate-200">
+      <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium transition-colors" [class.bg-white]="activeQueue() === 'SHIPPER'" [class.text-slate-900]="activeQueue() === 'SHIPPER'" [class.shadow-sm]="activeQueue() === 'SHIPPER'" [class.text-slate-500]="activeQueue() !== 'SHIPPER'" (click)="selectQueue('SHIPPER')">Shipper Applications</button>
+      <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium transition-colors" [class.bg-white]="activeQueue() === 'CONTRIBUTOR'" [class.text-slate-900]="activeQueue() === 'CONTRIBUTOR'" [class.shadow-sm]="activeQueue() === 'CONTRIBUTOR'" [class.text-slate-500]="activeQueue() !== 'CONTRIBUTOR'" (click)="selectQueue('CONTRIBUTOR')">Contributor Applications</button>
+    </div>
+
     <div [class]="ui.card" class="overflow-x-auto p-0!">
-      <table class="w-full text-sm text-left">
-        <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500 tracking-wide">
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <div>
+          <h2 class="font-semibold text-slate-900">{{ queueLabel() }} queue</h2>
+          <p class="text-xs text-slate-500">{{ totalItems() }} total applications</p>
+        </div>
+      </div>
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
           <tr>
-            <th class="px-5 py-3 font-medium">Ticket ID</th>
-            <th class="px-5 py-3 font-medium">Shop Name</th>
-            <th class="px-5 py-3 font-medium">Bank</th>
-            <th class="px-5 py-3 font-medium">Tax ID</th>
+            <th class="px-5 py-3 font-medium">Applicant</th>
+            <th class="px-5 py-3 font-medium">Identity card</th>
+            <th class="px-5 py-3 font-medium">{{ activeQueue() === 'SHIPPER' ? 'Vehicle' : 'Bank' }}</th>
+            <th class="px-5 py-3 font-medium">Submitted</th>
             <th class="px-5 py-3 font-medium">Status</th>
-            <th class="px-5 py-3 font-medium text-right">Actions</th>
+            <th class="px-5 py-3 text-right font-medium">Actions</th>
           </tr>
         </thead>
         <tbody>
-          @for (ticket of tickets(); track ticket.ticketId) {
-            <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-              <td class="px-5 py-4 font-mono text-xs text-slate-500">
-                <!-- {{ ticket.ticketId | slice:0:8 }}… -->
-              </td>
-              <td class="px-5 py-4 text-slate-700">{{ ticket.bankName }}</td>
-              <td class="px-5 py-4 text-slate-700">{{ ticket.taxId }}</td>
-              <td class="px-5 py-4">
-                <span
-                  class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                  [class.bg-yellow-100]="ticket.status === 'PENDING'"
-                  [class.text-yellow-700]="ticket.status === 'PENDING'"
-                  [class.bg-green-100]="ticket.status === 'APPROVED'"
-                  [class.text-green-700]="ticket.status === 'APPROVED'"
-                  [class.bg-red-100]="ticket.status === 'REJECTED'"
-                  [class.text-red-700]="ticket.status === 'REJECTED'"
-                >
-                  {{ ticket.status }}
-                </span>
-              </td>
-              <td class="px-5 py-4">
-                <div class="flex items-center justify-end gap-2">
-
-                  <!-- Details -->
-                  <button
-                    type="button"
-                    [class]="ui.buttonSecondary"
-                    class="text-xs px-3 py-1.5"
-                    (click)="openDetail(ticket)"
-                  >
-                    Details
-                  </button>
-
-                  <!-- Approve -->
-                  <button
-                    type="button"
-                    [class]="ui.buttonPrimary"
-                    class="text-xs px-3 py-1.5"
-                    [disabled]="approvingId() === ticket.ticketId || ticket.status !== 'PENDING'"
-                    (click)="onApprove(ticket.ticketId)"
-                  >
-                    @if (approvingId() === ticket.ticketId) {
-                      <svg class="animate-spin h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"/>
-                      </svg>
-                    } @else {
-                      Approve
-                    }
-                  </button>
-
-                  <!-- Reject -->
-                  <button
-                    type="button"
-                    [class]="ui.buttonSecondary"
-                    class="text-xs px-3 py-1.5"
-                    [disabled]="rejectingId() === ticket.ticketId || ticket.status !== 'PENDING'"
-                    (click)="onReject(ticket.ticketId)"
-                  >
-                    @if (rejectingId() === ticket.ticketId) {
-                      <svg class="animate-spin h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"/>
-                      </svg>
-                    } @else {
-                      Reject
-                    }
-                  </button>
-
-                </div>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="6" class="px-5 py-10 text-center text-slate-400 text-sm">
-                No promotion requests found.
-              </td>
-            </tr>
+          @if (loading()) {
+            <tr><td colspan="6" class="px-5 py-12 text-center text-slate-500">Loading applications…</td></tr>
+          } @else {
+            @for (ticket of tickets(); track ticket.ticketId) {
+              <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                <td class="px-5 py-4"><p class="font-mono text-xs text-slate-700">{{ ticket.userId }}</p><p class="mt-1 font-mono text-[11px] text-slate-400">Ticket {{ ticket.ticketId }}</p></td>
+                <td class="px-5 py-4 text-slate-700">{{ ticket.identityCardNumber }}</td>
+                <td class="px-5 py-4 text-slate-700">
+                  @if (isShipper(ticket)) { <p>{{ ticket.vehicleType }} · {{ ticket.vehiclePlateNumber }}</p><p class="mt-1 text-xs text-slate-400">License {{ ticket.driverLicenseNumber }}</p> }
+                  @else { <p>{{ ticket.bankName }}</p><p class="mt-1 text-xs text-slate-400">Tax {{ ticket.taxId }}</p> }
+                </td>
+                <td class="px-5 py-4 text-slate-500">{{ ticket.createdAt | date:'medium' }}</td>
+                <td class="px-5 py-4"><span class="rounded-full px-2.5 py-1 text-xs font-semibold" [class.bg-amber-100]="ticket.status === 'PENDING'" [class.text-amber-700]="ticket.status === 'PENDING'" [class.bg-emerald-100]="ticket.status === 'APPROVED'" [class.text-emerald-700]="ticket.status === 'APPROVED'" [class.bg-red-100]="ticket.status === 'REJECTED'" [class.text-red-700]="ticket.status === 'REJECTED'">{{ ticket.status }}</span></td>
+                <td class="px-5 py-4"><div class="flex justify-end gap-2">
+                  <button type="button" [class]="ui.buttonSecondary" class="px-3 py-1.5 text-xs" (click)="openDetail(ticket)">Details</button>
+                  <button type="button" [class]="ui.buttonPrimary" class="px-3 py-1.5 text-xs" [disabled]="ticket.status !== 'PENDING' || approvingId() === ticket.ticketId" (click)="onApprove(ticket)">{{ approvingId() === ticket.ticketId ? 'Approving…' : 'Approve' }}</button>
+                  <button type="button" [class]="ui.buttonSecondary" class="px-3 py-1.5 text-xs" [disabled]="ticket.status !== 'PENDING' || rejectingId() === ticket.ticketId" (click)="onReject(ticket)">{{ rejectingId() === ticket.ticketId ? 'Rejecting…' : 'Reject' }}</button>
+                </div></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="px-5 py-12 text-center text-slate-400">No {{ queueLabel().toLowerCase() }} applications found.</td></tr>
+            }
           }
         </tbody>
       </table>
-
-      <!-- Pagination -->
-      <div class="px-5 py-4 border-t border-slate-200">
-        <app-pagination-bar
-          [currentPage]="page()"
-          [totalPages]="totalPages()"
-          (pageChange)="goToPage($event)"
-        />
+      <div class="border-t border-slate-200 px-5 py-4">
+        <app-pagination-bar [currentPage]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- Ticket Detail Modal -->
-<app-ticket-detail-modal
-  [isOpen]="isDetailOpen()"
-  [ticket]="detailTicket()"
-  (close)="closeDetail()"
-/>
+<app-ticket-detail-modal [isOpen]="isDetailOpen()" [ticket]="detailTicket()" (close)="closeDetail()" />

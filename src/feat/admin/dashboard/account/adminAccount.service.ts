@@ -5,8 +5,12 @@ import { TOAST_ON_SUCCESS } from '../../../../core/interceptor/success.intercept
 import type { ResponseDto } from '../../../../shared/dto/response.dto';
 import type {
   Account,
+  AccountStatus,
+  AccountRole,
   AccountReportQuery,
   ExportAccountsRequest,
+  UpdateAccountRequest,
+  UpdateAccountRolesRequest,
 } from './adminAccount.type';  
 
 @Injectable({ providedIn: 'root' })
@@ -18,6 +22,58 @@ export class AdminAccountService {
     return this.http.get<ResponseDto<Account[]>>('/v1/users/account-profiles/report', {
       params: this.buildFilterParams(query),
     });
+  }
+
+  getAccountStatuses(accountIds: string[]): Observable<ResponseDto<Record<string, AccountStatus>>> {
+    let params = new HttpParams();
+    for (const id of accountIds) {
+      params = params.append('ids', id);
+    }
+    return this.http.get<ResponseDto<Record<string, AccountStatus>>>(
+      '/v1/auth/local/admin/accounts/statuses',
+      { params },
+    );
+  }
+
+  getAccountRoles(accountIds: string[]): Observable<ResponseDto<Record<string, AccountRole[]>>> {
+    let params = new HttpParams();
+    for (const id of accountIds) {
+      params = params.append('ids', id);
+    }
+    return this.http.get<ResponseDto<Record<string, AccountRole[]>>>(
+      '/v1/auth/local/admin/accounts/roles',
+      { params },
+    );
+  }
+
+  updateAccount(accountId: string, request: UpdateAccountRequest): Observable<ResponseDto<Account>> {
+    return this.http.put<ResponseDto<Account>>(
+      `/v1/users/account-profiles/admin/${accountId}`,
+      request,
+      { context: new HttpContext().set(TOAST_ON_SUCCESS, true) },
+    );
+  }
+
+  updateAccountStatus(
+    accountId: string,
+    status: Exclude<AccountStatus, 'UNKNOWN'>,
+  ): Observable<ResponseDto<AccountStatus>> {
+    return this.http.put<ResponseDto<AccountStatus>>(
+      `/v1/auth/local/admin/accounts/${accountId}/status`,
+      { status },
+      { context: new HttpContext().set(TOAST_ON_SUCCESS, true) },
+    );
+  }
+
+  updateAccountRoles(
+    accountId: string,
+    request: UpdateAccountRolesRequest,
+  ): Observable<ResponseDto<AccountRole[]>> {
+    return this.http.put<ResponseDto<AccountRole[]>>(
+      `/v1/auth/local/admin/accounts/${accountId}/roles`,
+      request,
+      { context: new HttpContext().set(TOAST_ON_SUCCESS, false) },
+    );
   }
 
   /** report-service: GET /accounts/export — generates and streams back the export file as a blob */

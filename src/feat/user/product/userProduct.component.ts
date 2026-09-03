@@ -6,7 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService, ProductResponse, ProductCategory } from '../../../shared/service/product.service';
 import { ToastrService } from 'ngx-toastr';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
@@ -23,6 +23,7 @@ export class UserProductComponent implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly toastr         = inject(ToastrService);
   private readonly router         = inject(Router);
+  private readonly route          = inject(ActivatedRoute);
   private readonly fb             = inject(FormBuilder);
 
   readonly ui          = UI_CLASS_NAME;
@@ -46,6 +47,14 @@ export class UserProductComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const query = this.route.snapshot.queryParamMap;
+    const category = query.get('category');
+    this.filterForm.patchValue({
+      name: query.get('name') ?? '',
+      category: this.categories.includes(category as ProductCategory)
+        ? (category as ProductCategory)
+        : '',
+    });
     this.load(0);
   }
 

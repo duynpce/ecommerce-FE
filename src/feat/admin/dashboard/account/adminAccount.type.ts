@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+export type AccountStatus = 'ACTIVE' | 'LIMITED' | 'BLOCKED' | 'INACTIVE' | 'CLOSED' | 'UNKNOWN';
+export type AccountRole = 'CUSTOMER' | 'CONTRIBUTOR' | 'SHIPPER' | 'ADMIN' | 'SUPER_ADMIN';
+export type AssignableAccountRole = Extract<AccountRole, 'CUSTOMER' | 'CONTRIBUTOR' | 'SHIPPER'>;
 
 /** Matches AccountReportResponsive from the user-service OpenAPI spec */
 export interface Account {
@@ -10,8 +13,22 @@ export interface Account {
   phoneNumber: string;
   address: string;
   gender: Gender;
+  status: AccountStatus;
+  roles: AccountRole[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UpdateAccountRequest {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  address: string;
+  gender: Gender;
+}
+
+export interface UpdateAccountRolesRequest {
+  roles: AssignableAccountRole[];
 }
 
 export const accountFilterSchema = z.object({

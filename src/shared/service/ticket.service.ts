@@ -9,7 +9,11 @@ import {
   ConfirmTransactionRequest,
   CreateProductReviewRequest,
   PromotionTicketResponse,
+  DeliveryWorkItem,
+  ReturnWorkItem,
   SavePromotionRequest,
+  SaveShipperApplicationRequest,
+  ShipperApplicationResponse,
   StartBuyingProcedureRequest,
 } from './ticket.service.type';
 
@@ -18,6 +22,9 @@ export class TicketService {
   private readonly http = inject(HttpClient);
   private readonly ticketBase = '/v1/tickets/transaction-tickets';
   private readonly promotionBase = '/v1/tickets/promotions';
+  private readonly shipperApplicationBase = '/v1/tickets/shipper-applications';
+  private readonly deliveryBase = '/v1/tickets/deliveries';
+  private readonly returnBase = '/v1/tickets/returns';
 
   // -------------------------------------------------------------------------
   // Transaction-ticket flow
@@ -144,5 +151,57 @@ export class TicketService {
       `${this.promotionBase}/reject/${promotionTicketId}`,
       {},
     );
+  }
+
+  saveShipperApplication(body: SaveShipperApplicationRequest): Observable<ResponseDto<void>> {
+    return this.http.post<ResponseDto<void>>(this.shipperApplicationBase, body);
+  }
+
+  getShipperApplications(
+    page: number,
+    limit: number,
+  ): Observable<ResponseDto<ShipperApplicationResponse[]>> {
+    const params = new HttpParams().set('page', page).set('limit', limit);
+    return this.http.get<ResponseDto<ShipperApplicationResponse[]>>(
+      this.shipperApplicationBase,
+      { params },
+    );
+  }
+
+  approveShipperApplication(ticketId: string): Observable<ResponseDto<void>> {
+    return this.http.post<ResponseDto<void>>(
+      `${this.shipperApplicationBase}/${ticketId}/approve`,
+      {},
+    );
+  }
+
+  rejectShipperApplication(ticketId: string): Observable<ResponseDto<void>> {
+    return this.http.post<ResponseDto<void>>(
+      `${this.shipperApplicationBase}/${ticketId}/reject`,
+      {},
+    );
+  }
+
+  getDeliveryWork(): Observable<ResponseDto<DeliveryWorkItem[]>> {
+    return this.http.get<ResponseDto<DeliveryWorkItem[]>>(this.deliveryBase);
+  }
+
+  acceptPickup(taskId: string): Observable<ResponseDto<void>> {
+    return this.http.post<ResponseDto<void>>(`${this.deliveryBase}/${taskId}/pickup`, {});
+  }
+
+  completeDelivery(
+    taskId: string,
+    outcome: 'RECEIVED' | 'NOT_RECEIVED',
+  ): Observable<ResponseDto<void>> {
+    return this.http.post<ResponseDto<void>>(`${this.deliveryBase}/${taskId}/outcome`, { outcome });
+  }
+
+  getPendingReturns(): Observable<ResponseDto<ReturnWorkItem[]>> {
+    return this.http.get<ResponseDto<ReturnWorkItem[]>>(this.returnBase);
+  }
+
+  confirmReturnTask(taskId: string, received: boolean): Observable<ResponseDto<void>> {
+    return this.http.post<ResponseDto<void>>(`${this.returnBase}/${taskId}/confirm`, { received });
   }
 }

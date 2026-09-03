@@ -1,0 +1,41 @@
+:host { display: block; }
+.home-page { --forest: #17342c; --cream: #fffaf0; background: var(--cream); }
+.hero { position: relative; background: var(--forest); }
+.font-display { font-family: Georgia, 'Times New Roman', serif; }
+.product-card { position: absolute; overflow: hidden; border-radius: 1.35rem; background: #fffdf8; box-shadow: 0 26px 70px rgba(5, 17, 14, 0.3); }
+.card-lamp { left: 2%; top: 4%; z-index: 2; width: min(68%, 350px); transform: rotate(-3.5deg); }
+.card-audio { right: 0; bottom: 6%; z-index: 3; width: min(53%, 270px); transform: rotate(5deg); }
+.product-art { position: relative; height: 270px; overflow: hidden; }
+.card-audio .product-art { height: 205px; }
+.art-number { position: absolute; right: 1rem; top: 0.8rem; font: 700 0.6rem/1 sans-serif; letter-spacing: 0.18em; color: rgba(23, 52, 44, 0.6); }
+.lamp { position: absolute; left: 50%; bottom: 31px; width: 112px; height: 145px; transform: translateX(-50%); border-radius: 58% 58% 15% 15%; background: #f2e7d1; box-shadow: 0 22px 28px rgba(78, 54, 34, 0.16); }
+.lamp::before { content: ''; position: absolute; left: 50%; bottom: 100%; width: 5px; height: 56px; background: #815d45; transform: translateX(-50%); }
+.lamp::after { content: ''; position: absolute; left: 50%; top: -76px; width: 142px; height: 72px; border-radius: 80px 80px 22px 22px; background: #b85d47; transform: translateX(-50%); }
+.headphones { position: absolute; left: 50%; top: 51%; width: 118px; height: 128px; transform: translate(-50%, -50%); border: 16px solid #17342c; border-bottom-color: transparent; border-radius: 60px 60px 25px 25px; }
+.headphones::before, .headphones::after { content: ''; position: absolute; top: 70px; width: 27px; height: 50px; border-radius: 11px; background: #f5e3d5; border: 7px solid #17342c; }
+.headphones::before { left: -26px; }
+.headphones::after { right: -26px; }
+.round-arrow { display: grid; width: 2.4rem; height: 2.4rem; flex: 0 0 auto; place-items: center; border: 1px solid #d5d6d2; border-radius: 50%; }
+.floating-note { position: absolute; left: 12%; bottom: 0; z-index: 5; display: flex; align-items: center; gap: 0.9rem; padding: 0.8rem 1rem; border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 1rem; background: rgba(255, 253, 248, 0.94); box-shadow: 0 16px 40px rgba(6, 20, 16, 0.25); backdrop-filter: blur(12px); }
+.avatar { display: grid; width: 2rem; height: 2rem; place-items: center; border: 2px solid white; border-radius: 50%; font-size: 0.65rem; font-weight: 800; color: white; }
+.category-card { display: flex; align-items: center; gap: 1rem; min-height: 122px; padding: 1rem; border: 1px solid rgba(23, 52, 44, 0.11); border-radius: 1.25rem; background: rgba(255, 255, 255, 0.66); transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease; }
+.category-card:hover { transform: translateY(-3px); background: white; box-shadow: 0 17px 40px rgba(40, 54, 46, 0.1); }
+.category-icon { display: grid; width: 76px; height: 82px; flex: 0 0 auto; place-items: center; border-radius: 1rem; font: 400 2rem/1 Georgia, serif; color: var(--forest); }
+.collection-stage { position: relative; width: min(100%, 430px); height: 310px; }
+.collection-circle { position: absolute; inset: 5px 55px; border-radius: 50%; background: #c46a51; }
+.book-stack { position: absolute; left: 8%; bottom: 32px; z-index: 2; display: flex; flex-direction: column-reverse; align-items: center; }
+.book-stack span { display: block; width: 165px; height: 35px; margin-top: -2px; border: 5px solid #17342c; border-radius: 4px 13px 13px 4px; background: #f4e4c9; }
+.book-stack span:nth-child(2) { width: 185px; background: #d8b570; }
+.book-stack span:nth-child(3) { width: 150px; background: #f1d7a9; }
+.vase { position: absolute; right: 12%; bottom: 31px; z-index: 3; width: 108px; height: 145px; border-radius: 46% 46% 32% 32% / 30% 30% 50% 50%; background: #17342c; }
+.vase::before { content: ''; position: absolute; left: 50%; bottom: 100%; width: 42px; height: 42px; border-radius: 4px 4px 0 0; background: #17342c; transform: translateX(-50%); }
+.collection-stage > p { position: absolute; left: 50%; top: 45%; z-index: 1; transform: translate(-50%, -50%); text-align: center; font: 700 2.6rem/0.84 Georgia, serif; letter-spacing: -0.06em; color: rgba(255, 250, 240, 0.82); }
+@media (max-width: 640px) {
+  .card-lamp { left: 0; width: 72%; }
+  .card-audio { right: 0; width: 55%; }
+  .product-art { height: 225px; }
+  .card-audio .product-art { height: 170px; }
+  .floating-note { left: 2%; }
+  .category-icon { width: 64px; height: 70px; }
+}
+@media (prefers-reduced-motion: reduce) { .category-card, .category-card * { transition: none !important; } }

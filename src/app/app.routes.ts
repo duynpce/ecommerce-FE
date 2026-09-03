@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from '../core/router-guard/adminGuard';
 import { contributorGuard } from '../core/router-guard/contributorGuard';
+import { shipperGuard } from '../core/router-guard/shipperGuard';
 
 export const routes: Routes = [
   // ── Auth pages — NO shell layout ────────────────────────────────────────
@@ -170,10 +171,24 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'vouchers',
+        loadComponent: () =>
+          import('../feat/voucher/voucherManagement.component').then(
+            (m) => m.VoucherManagementComponent,
+          ),
+      },
+      {
         path: 'transactions/:id',
         loadComponent: () =>
           import('../feat/contributor/transaction/contributorTransactionDetail.component').then(
             (m) => m.ContributorTransactionDetailComponent,
+          ),
+      },
+      {
+        path: 'returns',
+        loadComponent: () =>
+          import('../feat/contributor/transaction/contributorReturns.component').then(
+            (m) => m.ContributorReturnsComponent,
           ),
       },
 
@@ -183,6 +198,24 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../feat/contributor/profile/contributorProfile.component').then(
             (m) => m.ContributorProfileComponent,
+          ),
+      },
+    ],
+  },
+
+  // ── Shipper layout ────────────────────────────────────────────────────────
+  {
+    path: 'shipper',
+    canActivate: [shipperGuard],
+    loadComponent: () =>
+      import('../layout/shipperLayout.component').then((m) => m.ShipperLayoutComponent),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'deliveries' },
+      {
+        path: 'deliveries',
+        loadComponent: () =>
+          import('../feat/shipper/delivery/shipperDelivery.component').then(
+            (m) => m.ShipperDeliveryComponent,
           ),
       },
     ],
@@ -222,6 +255,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../feat/admin/dashboard/transaction/adminTransaction.component').then(
             (m) => m.AdminTransactionComponent,
+          ),
+      },
+      {
+        path: 'vouchers',
+        loadComponent: () =>
+          import('../feat/voucher/voucherManagement.component').then(
+            (m) => m.VoucherManagementComponent,
           ),
       },
     ],

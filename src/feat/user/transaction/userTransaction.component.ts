@@ -13,6 +13,7 @@ import { SubOrderResponse } from '../../../shared/service/sub-order.service.type
 import { SnapshotItemCardComponent } from '../../../shared/component/snapshotItemCard.component';
 import { PaginationBarComponent } from '../../../shared/component/paginationBar.component';
 import { UI_CLASS_NAME } from '../../../shared/constant/className.constant';
+import { ShopResponse, ShopService } from '../../../shared/service/shop.service';
 
 interface TransactionView extends TransactionResponse {
   subOrders: SubOrderResponse[];
@@ -27,11 +28,13 @@ interface TransactionView extends TransactionResponse {
 export class UserTransactionComponent implements OnInit {
   private readonly transactionService = inject(TransactionService);
   private readonly subOrderService = inject(SubOrderService);
+  private readonly shopService = inject(ShopService);
   private readonly toastr = inject(ToastrService);
 
   readonly ui = UI_CLASS_NAME;
   readonly loading = signal(true);
   readonly transactions = signal<TransactionView[]>([]);
+  readonly shopsById = signal<Record<string, ShopResponse>>({});
   readonly currentPage = signal(0);
   readonly totalPages = signal(0);
   readonly pageSize = 5;
@@ -62,12 +65,12 @@ export class UserTransactionComponent implements OnInit {
 
         forkJoin(requests).subscribe({
           next: (subOrderResponses) => {
-            this.transactions.set(
-              transactions.map((transaction, index) => ({
-                ...transaction,
-                subOrders: subOrderResponses[index].data ?? [],
-              })),
-            );
+            const transactionViews = transactions.map((transaction, index) => ({
+              ...transaction,
+              subOrders: subOrderResponses[index].data ?? [],
+            }));
+            this.transactions.set(transactionViews);
+            this.loadShopNames(transactionViews.flatMap((transaction) => transaction.subOrders));
             this.loading.set(false);
           },
           error: () => {
@@ -93,6 +96,39 @@ export class UserTransactionComponent implements OnInit {
       (total, subOrder) => total + subOrder.items.reduce((sum, item) => sum + item.quantity, 0),
       0,
     );
+  }
+
+  shopName(shopId: string): string {
+    return this.shopsById()[shopId]?.name ?? 'Shop';
+  }
+
+  transactionShopNames(transaction: TransactionView): string {
+    const names = transaction.subOrders
+      .map((subOrder) => this.shopsById()[subOrder.shopId]?.name)
+      .filter((name): name is string => Boolean(name));
+    return [...new Set(names)].join(', ') || 'Your purchase';
+  }
+
+  productNames(subOrder: SubOrderResponse): string {
+    return (
+      [...new Set(subOrder.items.map((item) => item.name).filter(Boolean))].join(', ') ||
+      'Purchased items'
+    );
+  }
+
+  private loadShopNames(subOrders: SubOrderResponse[]): void {
+    const loadedShops = this.shopsById();
+    const shopIds = [...new Set(subOrders.map((subOrder) => subOrder.shopId))];
+    for (const shopId of shopIds) {
+      if (loadedShops[shopId]) continue;
+      this.shopService.findById(shopId).subscribe({
+        next: (response) => {
+          if (response.data) {
+            this.shopsById.update((shops) => ({ ...shops, [shopId]: response.data }));
+          }
+        },
+      });
+    }
   }
 
   statusClass(status: TransactionStatus): string {

@@ -11,6 +11,8 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 export class UserLayoutComponent {
   private readonly roles = signal<string[]>(this.readRoles());
   readonly isContributor = computed(() => this.roles().includes('CONTRIBUTOR'));
+  readonly isShipper = computed(() => this.roles().includes('SHIPPER'));
+  readonly hasAllWorkRoles = computed(() => this.isContributor() && this.isShipper());
 
   private readRoles(): string[] {
     try {

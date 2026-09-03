@@ -1,62 +1,36 @@
-<!-- Top navbar — sticky, white, slate-200 border -->
-<header class="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
+<div class="bg-[#d85c41] px-4 py-2 text-center text-[11px] font-bold uppercase tracking-[0.16em] text-white">
+  Fresh finds, thoughtful sellers, and secure checkout—all in one market.
+</div>
 
-  <!-- 3px red accent line at the very top -->
-  <div class="h-[3px] bg-red-600"></div>
-
-  <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
-
-    <!-- Brand / Logo -->
-    <a href="/" class="inline-flex items-center gap-2 no-underline">
-      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white">
-        <!-- Lock icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </span>
-      <span class="text-[15px] font-bold tracking-tight text-slate-900">AuthPortal</span>
+<header class="sticky top-0 z-30 border-b border-[#17342c]/10 bg-[#fffaf0]/95 backdrop-blur-xl">
+  <div class="mx-auto flex h-[70px] max-w-7xl items-center justify-between gap-5 px-5 lg:px-8">
+    <a routerLink="/home" class="group inline-flex shrink-0 items-center gap-2.5 no-underline" aria-label="Morrow Market home">
+      <span class="grid h-9 w-9 place-items-center rounded-full bg-[#17342c] font-serif text-lg italic text-[#efc88c] transition-transform group-hover:-rotate-6">M</span>
+      <span class="font-serif text-xl font-bold tracking-[-0.03em] text-[#17342c]">Morrow <span class="font-normal italic">Market</span></span>
     </a>
 
-    <!-- Right-side controls -->
-    <nav class="flex items-center gap-2">
+    <nav class="hidden items-center gap-7 md:flex" aria-label="Main navigation">
+      <a routerLink="/user/products" class="text-sm font-semibold text-[#42564f] transition hover:text-[#d85c41]">Shop all</a>
+      <a routerLink="/home" fragment="categories" class="text-sm font-semibold text-[#42564f] transition hover:text-[#d85c41]">Categories</a>
+      <button type="button" class="text-sm font-semibold text-[#42564f] transition hover:text-[#d85c41]" (click)="navigateToSeller()">Sell on Morrow</button>
+    </nav>
+
+    <nav class="flex items-center gap-2" aria-label="Account navigation">
+      <a routerLink="/user/cart" class="hidden rounded-full px-3 py-2 text-sm font-semibold text-[#17342c] transition hover:bg-[#17342c]/5 sm:inline-flex">Cart</a>
       @if (isAuthenticated()) {
-
-        <!-- Account button -->
-        <button
-          type="button"
-          class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          (click)="navigateToProfile()"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-          </svg>
-          Account
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-[#17342c]/20 px-4 py-2.5 text-sm font-bold text-[#17342c] transition hover:bg-[#17342c] hover:text-white" (click)="navigateToProfile()">
+          My account
         </button>
-
-        <!-- Logout — reuses your existing LogoutButtonComponent -->
         <app-logout-button />
-
       } @else {
-
-        <!-- Sign in -->
-        <button
-          type="button"
-          class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-          (click)="navigateToLogin()"
-        >
+        <button type="button" class="inline-flex items-center justify-center rounded-full bg-[#17342c] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#244d41]" (click)="navigateToLogin()">
           Sign in
         </button>
-
       }
     </nav>
   </div>
 </header>
 
-<!-- Page content — each child page owns its own padding/bg -->
-<main class="min-h-[calc(100vh-57px)] bg-slate-100">
+<main>
   <router-outlet />
 </main>
