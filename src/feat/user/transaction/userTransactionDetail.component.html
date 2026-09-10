@@ -1,0 +1,254 @@
+<div [class]="ui.pageWrapper">
+  <div class="mx-auto w-full max-w-4xl">
+    <a
+      routerLink="/user/transactions"
+      class="mb-6 inline-flex text-sm text-slate-500 hover:text-slate-800"
+      >← Back to transactions</a
+    >
+
+    @if (transaction(); as transaction) {
+      <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 [class]="ui.sectionTitle">Purchase details</h1>
+          <p [class]="ui.sectionDescription">
+            {{ transaction.createdAt | date: 'medium' }} · {{ transaction.subOrderIds.length }} shop
+            orders
+          </p>
+          <details class="mt-2 text-xs text-slate-500">
+            <summary class="cursor-pointer font-medium">Technical details</summary>
+            <p class="mt-1 break-all">Transaction ID: {{ transaction.id }}</p>
+          </details>
+        </div>
+        <div class="text-right">
+          <span
+            class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
+            >{{ transaction.status }}</span
+          >
+          <p class="mt-2 text-xl font-bold text-slate-900">
+            ${{ transaction.totalAmount | number: '1.2-2' }}
+          </p>
+          @if (transaction.vouchers.length) {
+            <div class="mt-1 space-y-0.5 text-xs font-medium text-emerald-700">
+              @for (voucher of transaction.vouchers; track voucher.voucherId) {
+                <p>{{ voucher.code }} saved ${{ voucher.discountAmount | number: '1.2-2' }}</p>
+              }
+            </div>
+          }
+        </div>
+      </header>
+
+      @if (
+        (transaction.status === 'REJECTED' || transaction.status === 'CANCELLED') &&
+        transaction.statusReason
+      ) {
+        <section class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <p class="text-xs font-semibold uppercase tracking-wide text-red-600">
+            Transaction status reason
+          </p>
+          <p class="mt-1 text-sm text-red-800">{{ transaction.statusReason }}</p>
+          @if (triggerOrder(transaction.triggerSubOrderId); as trigger) {
+            <div class="mt-2 text-sm text-red-700">
+              <p><span class="font-semibold">Shop:</span> {{ shopName(trigger.shopId) }}</p>
+              <p><span class="font-semibold">Products:</span> {{ productNames(trigger) }}</p>
+              <details class="mt-1 text-xs">
+                <summary class="cursor-pointer font-medium">Technical details</summary>
+                <p class="mt-1 break-all">Triggering shop order ID: {{ trigger.id }}</p>
+              </details>
+            </div>
+          }
+        </section>
+      }
+
+      @if (transaction.phoneNumber || transaction.address) {
+        <section [class]="ui.card" class="mb-5">
+          <h2 class="font-semibold text-slate-900">Delivery details</h2>
+          <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <dt class="text-slate-500">Phone number</dt>
+              <dd class="mt-1 font-medium text-slate-900">{{ transaction.phoneNumber || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-slate-500">Delivery address</dt>
+              <dd class="mt-1 whitespace-pre-line font-medium text-slate-900">
+                {{ transaction.address || '—' }}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      }
+    }
+
+    @if (loading()) {
+      <div [class]="ui.center" class="py-20 text-sm text-slate-500">Loading purchased items…</div>
+    } @else {
+      <div class="space-y-5">
+        @for (order of orders(); track order.id) {
+          <section [class]="ui.card">
+            <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="font-semibold text-slate-900">{{ shopName(order.shopId) }}</h2>
+                <p class="mt-0.5 text-sm text-slate-600">{{ productNames(order) }}</p>
+                <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                  <span class="text-slate-500">{{ order.createdAt | date: 'medium' }}</span>
+                  <a
+                    [routerLink]="['/user/shops', order.shopId]"
+                    class="font-semibold text-indigo-600 transition-colors hover:text-indigo-800"
+                  >
+                    View shop details &rarr;
+                  </a>
+                </div>
+                <details class="mt-2 text-xs text-slate-400">
+                  <summary class="cursor-pointer">Technical details</summary>
+                  <p class="mt-1 break-all">Shop order ID: {{ order.id }}</p>
+                  <p class="break-all">Shop ID: {{ order.shopId }}</p>
+                </details>
+              </div>
+              <span
+                class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
+                >{{ order.status }}</span
+              >
+            </div>
+
+            @if (
+              (order.status === 'REJECTED' || order.status === 'CANCELLED') &&
+              (order.statusReason || order.note)
+            ) {
+              <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                <p class="text-xs font-semibold uppercase tracking-wide text-red-600">
+                  Status reason
+                </p>
+                <p class="mt-1 text-sm text-red-800">{{ order.statusReason || order.note }}</p>
+              </div>
+            }
+
+            <div class="space-y-3">
+              @for (item of order.items; track item.id) {
+                <div>
+                  <app-snapshot-item-card [item]="item" [subOrderStatus]="order.status" />
+
+                  @if (canConfirmDelivery(item)) {
+                    <div class="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+                      <p class="text-sm text-slate-700">
+                        Confirm the delivery result for {{ item.name }}.
+                      </p>
+                      <div class="mt-3 flex flex-wrap gap-2">
+                        <button
+                          [class]="ui.buttonPrimary"
+                          [disabled]="acting() !== null"
+                          (click)="confirmDelivery(order, item, 'RECEIVED')"
+                        >
+                          {{ acting() === item.id ? 'Confirming…' : 'Received' }}
+                        </button>
+                        <button
+                          [class]="ui.buttonSecondary"
+                          [disabled]="acting() !== null"
+                          (click)="confirmDelivery(order, item, 'NOT_RECEIVED')"
+                        >
+                          Not received
+                        </button>
+                        <button
+                          [class]="ui.buttonDanger"
+                          [disabled]="acting() !== null"
+                          (click)="confirmDelivery(order, item, 'RETURNED')"
+                        >
+                          Return
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  @if (canCancel(item)) {
+                    <div class="mt-2 flex justify-end">
+                      <button
+                        [class]="ui.buttonDanger"
+                        class="text-xs!"
+                        [disabled]="acting() !== null"
+                        (click)="cancelItem(order, item)"
+                      >
+                        {{ acting() === item.id ? 'Cancelling…' : 'Cancel item' }}
+                      </button>
+                    </div>
+                  }
+
+                  @if (canReview(item) && reviewingSnapshotId() !== item.id) {
+                    <div class="mt-2 flex justify-end">
+                      <button
+                        [class]="ui.buttonPrimary"
+                        class="text-xs!"
+                        (click)="startReview(item)"
+                      >
+                        Review item
+                      </button>
+                    </div>
+                  }
+
+                  @if (reviewingSnapshotId() === item.id) {
+                    <div class="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+                      <h3 class="text-sm font-semibold text-slate-900">Review {{ item.name }}</h3>
+                      <div class="mt-3 flex items-center gap-1">
+                        @for (star of [1, 2, 3, 4, 5]; track star) {
+                          <button
+                            type="button"
+                            class="text-2xl leading-none"
+                            [class]="star <= reviewRating() ? 'text-amber-400' : 'text-slate-300'"
+                            [attr.aria-label]="star + ' stars'"
+                            (click)="reviewRating.set(star)"
+                          >
+                            ★
+                          </button>
+                        }
+                      </div>
+                      <textarea
+                        rows="3"
+                        [class]="ui.input"
+                        class="mt-3 resize-none bg-white"
+                        placeholder="Share your experience (optional)"
+                        [value]="reviewComment()"
+                        (input)="updateReviewComment($any($event.target).value)"
+                      ></textarea>
+                      <div class="mt-3 flex gap-2">
+                        <button
+                          [class]="ui.buttonPrimary"
+                          [disabled]="submittingReview()"
+                          (click)="submitReview(order, item)"
+                        >
+                          {{ submittingReview() ? 'Submitting…' : 'Submit review' }}
+                        </button>
+                        <button
+                          [class]="ui.buttonSecondary"
+                          [disabled]="submittingReview()"
+                          (click)="cancelReview()"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <dl class="mt-4 grid grid-cols-3 gap-3 border-t border-slate-100 pt-4 text-sm">
+              <div>
+                <dt class="text-slate-500">Subtotal</dt>
+                <dd class="font-semibold">${{ order.subTotalAmount | number: '1.2-2' }}</dd>
+              </div>
+              <div>
+                <dt class="text-slate-500">Shipping</dt>
+                <dd class="font-semibold">${{ order.shippingFee | number: '1.2-2' }}</dd>
+              </div>
+              <div class="text-right">
+                <dt class="text-slate-500">Total</dt>
+                <dd class="font-bold">${{ order.totalAmount | number: '1.2-2' }}</dd>
+              </div>
+            </dl>
+          </section>
+        } @empty {
+          <div [class]="ui.card" class="py-12 text-center text-slate-500">
+            No sub-orders were returned.
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

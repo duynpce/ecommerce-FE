@@ -73,41 +73,26 @@
 
         <div class="border-t border-slate-100"></div>
 
-        <!-- Section: Business Info -->
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Business Info</p>
-          <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-            <div>
-              <dt class="text-slate-500">Shop Name</dt>
-              <dd class="text-slate-700 mt-0.5">{{ t.shopName }}</dd>
-            </div>
-            <div>
-              <dt class="text-slate-500">Tax ID</dt>
-              <dd class="text-slate-700 mt-0.5">{{ t.taxId }}</dd>
-            </div>
-            <div class="col-span-2">
-              <dt class="text-slate-500">Delivery Address</dt>
-              <dd class="text-slate-700 mt-0.5">{{ t.deliveryAddress }}</dd>
-            </div>
-          </dl>
-        </div>
-
-        <div class="border-t border-slate-100"></div>
-
-        <!-- Section: Banking Info -->
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Banking Info</p>
-          <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-            <div>
-              <dt class="text-slate-500">Bank Name</dt>
-              <dd class="text-slate-700 mt-0.5">{{ t.bankName }}</dd>
-            </div>
-            <div>
-              <dt class="text-slate-500">Account Number</dt>
-              <dd class="text-slate-700 mt-0.5">{{ t.bankAccountNumber }}</dd>
-            </div>
-          </dl>
-        </div>
+        @if (isShipper(t)) {
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Driver & Vehicle</p>
+            <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              <div><dt class="text-slate-500">Driver license</dt><dd class="text-slate-700 mt-0.5">{{ t.driverLicenseNumber }}</dd></div>
+              <div><dt class="text-slate-500">Phone</dt><dd class="text-slate-700 mt-0.5">{{ t.phoneNumber }}</dd></div>
+              <div><dt class="text-slate-500">Vehicle type</dt><dd class="text-slate-700 mt-0.5">{{ t.vehicleType }}</dd></div>
+              <div><dt class="text-slate-500">Vehicle plate</dt><dd class="text-slate-700 mt-0.5">{{ t.vehiclePlateNumber }}</dd></div>
+            </dl>
+          </div>
+        } @else {
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Business & Banking</p>
+            <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              <div><dt class="text-slate-500">Tax ID</dt><dd class="text-slate-700 mt-0.5">{{ t.taxId }}</dd></div>
+              <div><dt class="text-slate-500">Bank Name</dt><dd class="text-slate-700 mt-0.5">{{ t.bankName }}</dd></div>
+              <div><dt class="text-slate-500">Account Number</dt><dd class="text-slate-700 mt-0.5">{{ t.bankAccountNumber }}</dd></div>
+            </dl>
+          </div>
+        }
 
       </div>
 

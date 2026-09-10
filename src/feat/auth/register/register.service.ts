@@ -32,7 +32,7 @@ export class RegisterService {
 	checkUserFieldExists(paramName: 'phone-number', value: string): Observable<boolean> {
 		return this.http
 			.get<ResponseDto<boolean>>(
-				`/v1/users/accounts/${paramName}/${encodeURIComponent(value)}`
+				`/v1/users/account-profiles/${paramName}/${encodeURIComponent(value)}`
 			)
 			.pipe(map((res) => res.data ?? false));
 	}

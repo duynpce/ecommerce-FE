@@ -1,0 +1,53 @@
+<div [class]="ui.pageWrapper">
+  <div class="mx-auto w-full max-w-5xl">
+    <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h1 [class]="ui.sectionTitle">Returned Sub-orders</h1>
+        <p [class]="ui.sectionDescription" class="mt-1">Products currently waiting for you to confirm their physical return.</p>
+      </div>
+      <button type="button" [class]="ui.buttonSecondary" (click)="load()" [disabled]="loading()">Refresh</button>
+    </div>
+
+    <div class="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
+      Only pending Camunda return tasks assigned to your Contributor account appear here. “Not received” retries the return route up to its configured limit.
+    </div>
+
+    @if (loading()) {
+      <div [class]="ui.center" class="py-20 text-sm text-slate-500">Loading returned sub-orders…</div>
+    } @else if (!returns().length) {
+      <div [class]="ui.card" class="py-16 text-center">
+        <h2 class="font-semibold text-slate-800">No returns need attention</h2>
+        <p class="mt-1 text-sm text-slate-500">New return confirmations will appear here after a shipper delivers the return.</p>
+      </div>
+    } @else {
+      <div class="space-y-4">
+        @for (item of returns(); track item.taskId) {
+          <article [class]="ui.card" class="flex flex-col gap-5">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h2 class="font-semibold text-slate-900">Sub-order #{{ item.subOrderId.slice(0, 8) }}</h2>
+                  <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">AWAITING RETURN CONFIRMATION</span>
+                </div>
+                <p class="mt-1 text-sm text-slate-600">{{ item.productName }}</p>
+                <p class="mt-1 text-xs text-slate-400">Task created {{ item.createdAt | date:'medium' }} · Attempt {{ item.retry + 1 }}</p>
+              </div>
+              <a [routerLink]="['/contributor/transactions', item.subOrderId]" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">Open sub-order →</a>
+            </div>
+
+            <dl class="grid gap-3 rounded-xl bg-slate-50 p-4 text-sm sm:grid-cols-3">
+              <div><dt class="text-xs text-slate-400">Transaction</dt><dd class="mt-1 break-all font-mono text-xs text-slate-700">{{ item.transactionId }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Product snapshot</dt><dd class="mt-1 break-all font-mono text-xs text-slate-700">{{ item.snapshotId }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Shop</dt><dd class="mt-1 break-all font-mono text-xs text-slate-700">{{ item.shopId || 'Not available' }}</dd></div>
+            </dl>
+
+            <div class="flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-4">
+              <button type="button" [class]="ui.buttonSecondary" [disabled]="actingTaskId() === item.taskId" (click)="confirm(item, false)">{{ actingTaskId() === item.taskId ? 'Updating…' : 'Not Received' }}</button>
+              <button type="button" [class]="ui.buttonPrimary" [disabled]="actingTaskId() === item.taskId" (click)="confirm(item, true)">{{ actingTaskId() === item.taskId ? 'Updating…' : 'Confirm Received' }}</button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </div>
+</div>

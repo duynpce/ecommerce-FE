@@ -1,0 +1,196 @@
+<div [class]="ui.pageWrapper">
+  <div class="mx-auto w-full max-w-2xl">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 [class]="ui.sectionTitle">Contributor Profile</h1>
+      <p [class]="ui.sectionDescription">View and manage your seller & banking credentials.</p>
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm flex items-center justify-center py-24">
+        <svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+        </svg>
+      </div>
+    } @else {
+
+      <!-- Contributor Banner -->
+      @if (profile()) {
+        <div class="rounded-2xl bg-gradient-to-r from-indigo-800 to-slate-900 p-6 mb-6 flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-5">
+            <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
+              <svg class="w-8 h-8 text-indigo-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016 2.993 2.993 0 0 0 2.25-1.016 3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <p class="text-lg font-bold text-white">Verified Contributor</p>
+                <span class="inline-flex items-center rounded-full bg-emerald-400/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-400/30">
+                  Active
+                </span>
+              </div>
+              <p class="text-xs text-indigo-200 mt-1">
+                Contributor ID: <span class="font-mono text-white/90">{{ profile()?.id }}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Profile Card -->
+      <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-6 sm:p-8">
+
+        @if (!isEditing()) {
+          <!-- ── View mode ── -->
+          <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+            <div>
+              <h2 class="text-base font-semibold text-slate-900">Verification &amp; Payout Details</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Official identity and bank account information.</p>
+            </div>
+            <button id="contributor-profile-edit-btn" [class]="ui.buttonPrimary" class="text-xs!" (click)="toggleEdit()">
+              <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+              </svg>
+              Edit Profile
+            </button>
+          </div>
+
+          @if (profile()) {
+            <div class="grid gap-6 sm:grid-cols-2">
+              <div>
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Identity Card (CCCD / ID)</p>
+                <p class="text-sm font-semibold font-mono text-slate-800 mt-1">{{ profile()?.identityCardNumber || '—' }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">Read-only — contact support to change</p>
+              </div>
+
+              <div>
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Bank Name</p>
+                <p class="text-sm font-semibold text-slate-800 mt-1">{{ profile()?.bankName || '—' }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Bank Account Number</p>
+                <p class="text-sm font-semibold font-mono text-slate-800 mt-1">{{ profile()?.bankAccountNumber || '—' }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Tax ID</p>
+                <p class="text-sm font-semibold font-mono text-slate-800 mt-1">{{ profile()?.taxId || '—' }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Approved Date</p>
+                <p class="text-sm font-semibold text-slate-800 mt-1">{{ profile()?.createdAt | date:'mediumDate' }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Last Updated</p>
+                <p class="text-sm font-semibold text-slate-800 mt-1">{{ profile()?.updatedAt | date:'mediumDate' }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="text-center py-12 text-slate-400 text-sm">
+              No contributor profile details found.
+            </div>
+          }
+
+        } @else {
+          <!-- ── Edit mode ── -->
+          <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+            <div>
+              <h2 class="text-base font-semibold text-slate-900">Edit Payout Details</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Update your bank account and tax information.</p>
+            </div>
+            <button id="contributor-profile-cancel-btn" [class]="ui.buttonSecondary" class="text-xs!" (click)="cancelEdit()">
+              Cancel
+            </button>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="flex flex-col gap-5">
+
+            <!-- Bank Name -->
+            <div class="flex flex-col gap-1">
+              <label for="cp-bankName" [class]="ui.label">Bank Name</label>
+              <input
+                id="cp-bankName"
+                type="text"
+                formControlName="bankName"
+                placeholder="e.g. Vietcombank"
+                [class]="ui.input"
+                [class.border-red-400]="isInvalid('bankName')"
+              />
+              @if (isInvalid('bankName')) {
+                <p [class]="ui.errorText">Bank name is required.</p>
+              }
+            </div>
+
+            <!-- Bank Account Number -->
+            <div class="flex flex-col gap-1">
+              <label for="cp-bankAccountNumber" [class]="ui.label">Bank Account Number</label>
+              <input
+                id="cp-bankAccountNumber"
+                type="text"
+                formControlName="bankAccountNumber"
+                placeholder="e.g. 1234567890"
+                [class]="ui.input"
+                [class.border-red-400]="isInvalid('bankAccountNumber')"
+              />
+              @if (isInvalid('bankAccountNumber')) {
+                <p [class]="ui.errorText">Bank account number is required.</p>
+              }
+            </div>
+
+            <!-- Tax ID -->
+            <div class="flex flex-col gap-1">
+              <label for="cp-taxId" [class]="ui.label">Tax ID</label>
+              <input
+                id="cp-taxId"
+                type="text"
+                formControlName="taxId"
+                placeholder="e.g. 0312345678"
+                [class]="ui.input"
+                [class.border-red-400]="isInvalid('taxId')"
+              />
+              @if (isInvalid('taxId')) {
+                <p [class]="ui.errorText">Tax ID is required.</p>
+              }
+            </div>
+
+            <!-- Identity card notice -->
+            <div class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs text-slate-500">
+              <span class="font-semibold text-slate-700">Identity Card:</span>
+              {{ profile()?.identityCardNumber }} &mdash; read-only. Contact support to change.
+            </div>
+
+            <!-- Submit -->
+            <button
+              id="contributor-profile-save-btn"
+              type="submit"
+              [class]="ui.buttonPrimary"
+              class="w-full"
+              [disabled]="saving()"
+            >
+              @if (saving()) {
+                <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+                </svg>
+                Saving…
+              } @else {
+                Save Changes
+              }
+            </button>
+
+          </form>
+        }
+
+      </div>
+
+    }
+
+  </div>
+</div>

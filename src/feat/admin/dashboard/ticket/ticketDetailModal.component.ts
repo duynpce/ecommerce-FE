@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { UI_CLASS_NAME } from '../../../../shared/constant/className.constant';
-import { PromotionTicketResponse } from './promotionTicket.type';
+import {
+  RoleApplicationTicket,
+  ShipperApplicationResponse,
+} from '../../../../shared/service/ticket.service.type';
 
 @Component({
   selector: 'app-ticket-detail-modal',
@@ -14,7 +17,7 @@ import { PromotionTicketResponse } from './promotionTicket.type';
 })
 export class TicketDetailModalComponent {
   readonly isOpen = input<boolean>(false);
-  readonly ticket = input<PromotionTicketResponse | null>(null);
+  readonly ticket = input<RoleApplicationTicket | null>(null);
 
   readonly close = output<void>();
 
@@ -24,5 +27,9 @@ export class TicketDetailModalComponent {
     if (this.isOpen()) {
       this.close.emit();
     }
+  }
+
+  isShipper(ticket: RoleApplicationTicket): ticket is ShipperApplicationResponse {
+    return 'vehicleType' in ticket;
   }
 }

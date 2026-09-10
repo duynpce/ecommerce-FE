@@ -1,0 +1,211 @@
+<div [class]="ui.pageWrapper">
+  <div class="mx-auto w-full max-w-2xl">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 [class]="ui.sectionTitle">My Profile</h1>
+      <p [class]="ui.sectionDescription">Update your personal information below.</p>
+    </div>
+
+    <!-- Loading skeleton -->
+    @if (loading()) {
+      <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-8 flex items-center justify-center py-24">
+        <svg class="animate-spin h-8 w-8 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+        </svg>
+      </div>
+    } @else {
+
+      <!-- Profile avatar card -->
+      @if (profile()) {
+        <div class="rounded-2xl bg-gradient-to-r from-slate-800 to-slate-900 p-6 mb-6 flex items-center gap-5 shadow-sm">
+          <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
+            <svg class="w-8 h-8 text-white/70" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-lg font-bold text-white">{{ profile()!.firstName }} {{ profile()!.lastName }}</p>
+            <p class="text-sm text-slate-300">{{ profile()!.gender }}</p>
+            <p class="text-xs text-slate-400 mt-0.5">Member since {{ profile()!.createdAt | slice:0:10 }}</p>
+          </div>
+        </div>
+      }
+
+      <!-- Personal Information Card -->
+      <div class="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-6 sm:p-8">
+        
+        <!-- Header / Mode toggle -->
+        <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">Personal Information</h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              @if (isEditing()) {
+                Modify your personal details below and save your changes.
+              } @else {
+                Your personal details as registered in the system.
+              }
+            </p>
+          </div>
+          @if (!isEditing()) {
+            <button
+              type="button"
+              [class]="ui.buttonSecondary"
+              class="text-xs! px-3.5! py-1.5! flex items-center gap-1.5"
+              (click)="toggleEdit()"
+            >
+              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+              </svg>
+              Edit Profile
+            </button>
+          }
+        </div>
+
+        @if (!isEditing()) {
+
+          <!-- ── View Mode ───────────────────────────────────────────────────── -->
+          <div class="grid gap-6 sm:grid-cols-2">
+            <div>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">First Name</p>
+              <p class="text-sm font-semibold text-slate-800 mt-1">{{ profile()?.firstName || '—' }}</p>
+            </div>
+
+            <div>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Last Name</p>
+              <p class="text-sm font-semibold text-slate-800 mt-1">{{ profile()?.lastName || '—' }}</p>
+            </div>
+
+            <div>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Phone Number</p>
+              <p class="text-sm font-semibold text-slate-800 mt-1">{{ profile()?.phoneNumber || '—' }}</p>
+            </div>
+
+            <div>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Gender</p>
+              <p class="text-sm font-semibold text-slate-800 mt-1">{{ profile()?.gender || '—' }}</p>
+            </div>
+
+            <div class="sm:col-span-2">
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Address</p>
+              <p class="text-sm font-semibold text-slate-800 mt-1">{{ profile()?.address || '—' }}</p>
+            </div>
+          </div>
+
+        } @else {
+
+          <!-- ── Edit Mode Form ──────────────────────────────────────────────── -->
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="flex flex-col gap-5">
+
+            <!-- Name row -->
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="flex flex-col gap-1">
+                <label [class]="ui.label">First Name <span class="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  formControlName="firstName"
+                  placeholder="John"
+                  [class]="ui.input"
+                  [class.border-red-400]="isInvalid('firstName')"
+                />
+                @if (isInvalid('firstName')) {
+                  <p [class]="ui.errorText">First name is required.</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label [class]="ui.label">Last Name <span class="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  formControlName="lastName"
+                  placeholder="Doe"
+                  [class]="ui.input"
+                  [class.border-red-400]="isInvalid('lastName')"
+                />
+                @if (isInvalid('lastName')) {
+                  <p [class]="ui.errorText">Last name is required.</p>
+                }
+              </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="flex flex-col gap-1">
+              <label [class]="ui.label">Phone Number <span class="text-red-500">*</span></label>
+              <input
+                type="tel"
+                formControlName="phoneNumber"
+                placeholder="+1 234 567 890"
+                [class]="ui.input"
+                [class.border-red-400]="isInvalid('phoneNumber')"
+              />
+              @if (isInvalid('phoneNumber')) {
+                <p [class]="ui.errorText">Phone number is required.</p>
+              }
+            </div>
+
+            <!-- Address -->
+            <div class="flex flex-col gap-1">
+              <label [class]="ui.label">Address <span class="text-red-500">*</span></label>
+              <input
+                type="text"
+                formControlName="address"
+                placeholder="123 Main St, City, Country"
+                [class]="ui.input"
+                [class.border-red-400]="isInvalid('address')"
+              />
+              @if (isInvalid('address')) {
+                <p [class]="ui.errorText">Address is required.</p>
+              }
+            </div>
+
+            <!-- Gender -->
+            <div class="flex flex-col gap-1">
+              <label [class]="ui.label">Gender <span class="text-red-500">*</span></label>
+              <div class="flex gap-3 flex-wrap">
+                @for (g of genders; track g) {
+                  <label [class]="ui.radioOption" [class.ring-2]="form.get('gender')?.value === g" [class.ring-slate-800]="form.get('gender')?.value === g" [class.border-slate-800]="form.get('gender')?.value === g">
+                    <input type="radio" formControlName="gender" [value]="g" class="accent-slate-800" />
+                    {{ g }}
+                  </label>
+                }
+              </div>
+              @if (isInvalid('gender')) {
+                <p [class]="ui.errorText">Please select a gender.</p>
+              }
+            </div>
+
+            <!-- Action buttons -->
+            <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+              <button
+                type="button"
+                [class]="ui.buttonSecondary"
+                [disabled]="saving()"
+                (click)="cancelEdit()"
+              >
+                Cancel
+              </button>
+
+              <button type="submit" [class]="ui.buttonPrimary" [disabled]="saving()">
+                @if (saving()) {
+                  <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"></path>
+                  </svg>
+                  Saving…
+                } @else {
+                  Save Changes
+                }
+              </button>
+            </div>
+
+          </form>
+
+        }
+
+      </div>
+
+    }
+
+  </div>
+</div>

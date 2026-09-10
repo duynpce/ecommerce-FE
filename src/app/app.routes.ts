@@ -1,97 +1,234 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from '../core/router-guard/adminGuard';
+import { contributorGuard } from '../core/router-guard/contributorGuard';
+import { shipperGuard } from '../core/router-guard/shipperGuard';
 
 export const routes: Routes = [
   // ── Auth pages — NO shell layout ────────────────────────────────────────
   {
     path: 'login',
-    loadComponent: () =>
-      import('../feat/auth/login/login.component').then((m) => m.LoginComponent),
+    loadComponent: () => import('../feat/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'register',
     loadComponent: () =>
-      import('../feat/auth/register/register.component').then(
-        (m) => m.RegisterComponent,
-      ),
+      import('../feat/auth/register/register.component').then((m) => m.RegisterComponent),
   },
   {
     path: 'callback/:authServer',
     loadComponent: () =>
-      import('../feat/auth/callback/callback.component').then(
-        (m) => m.CallbackComponent,
+      import('../feat/auth/callback/callback.component').then((m) => m.CallbackComponent),
+  },
+  {
+    path: 'complete-profile',
+    loadComponent: () =>
+      import('../feat/auth/complete-profile/complete-profile.component').then(
+        (m) => m.CompleteProfileComponent,
       ),
   },
 
-  // ── Shell layout — wraps home, logout ───────────────────────────────────
+  // ── Shell layout ─────────────────────────────────────────────────────────
   {
     path: '',
-    loadComponent: () =>
-      import('../layout/shell.component').then((m) => m.ShellComponent),
+    loadComponent: () => import('../layout/shell.component').then((m) => m.ShellComponent),
     children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        redirectTo: 'home',
-      },
+      { path: '', pathMatch: 'full', redirectTo: 'home' },
       {
         path: 'home',
-        loadComponent: () =>
-          import('../feat/home/home.component').then((m) => m.HomeComponent),
+        loadComponent: () => import('../feat/home/home.component').then((m) => m.HomeComponent),
       },
       {
         path: 'logout',
         loadComponent: () =>
-          import('../feat/auth/logout/logout.component').then(
-            (m) => m.LogoutComponent,
-          ),
+          import('../feat/auth/logout/logout.component').then((m) => m.LogoutComponent),
       },
       {
         path: 'logout/:authServer',
         loadComponent: () =>
-          import('../feat/auth/logout/logout.component').then(
-            (m) => m.LogoutComponent,
-          ),
+          import('../feat/auth/logout/logout.component').then((m) => m.LogoutComponent),
       },
     ],
   },
 
-  // ── User layout — wraps user-facing feature pages ───────────────────────
+  // ── User layout ───────────────────────────────────────────────────────────
   {
     path: 'user',
     loadComponent: () =>
       import('../layout/userLayout.component').then((m) => m.UserLayoutComponent),
     children: [
+      { path: '', pathMatch: 'full', redirectTo: 'products' },
+
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('../feat/user/profile/userProfile.component').then((m) => m.UserProfileComponent),
+      },
+      {
+        path: 'credential',
+        loadComponent: () =>
+          import('../feat/user/profile/userCredential.component').then(
+            (m) => m.UserCredentialComponent,
+          ),
+      },
       {
         path: 'tickets/apply',
         loadComponent: () =>
-          import('../feat/user/userTicket.component').then(
-            (m) => m.UserTicketComponent,
+          import('../feat/user/ticket/userTicket.component').then((m) => m.UserTicketComponent),
+      },
+
+      // Products
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('../feat/user/product/userProduct.component').then((m) => m.UserProductComponent),
+      },
+      {
+        path: 'products/:id',
+        loadComponent: () =>
+          import('../feat/user/product/userProductDetail.component').then(
+            (m) => m.UserProductDetailComponent,
           ),
       },
-      // Add more user pages here as needed
-      // {
-      //   path: 'profile',
-      //   loadComponent: () =>
-      //     import('../feat/profile/profile.component').then(
-      //       (m) => m.ProfileComponent,
-      //     ),
-      // },
+
+      // Shops
+      {
+        path: 'shops/:id',
+        loadComponent: () =>
+          import('../feat/user/shop/userShopDetail.component').then(
+            (m) => m.UserShopDetailComponent,
+          ),
+      },
+
+      // Transactions
+      {
+        path: 'cart',
+        loadComponent: () =>
+          import('../feat/user/cart/userCart.component').then((m) => m.UserCartComponent),
+      },
+      {
+        path: 'checkout',
+        loadComponent: () =>
+          import('../feat/user/checkout/userCheckout.component').then(
+            (m) => m.UserCheckoutComponent,
+          ),
+      },
+      {
+        path: 'transactions',
+        loadComponent: () =>
+          import('../feat/user/transaction/userTransaction.component').then(
+            (m) => m.UserTransactionComponent,
+          ),
+      },
+      {
+        path: 'transactions/:id',
+        loadComponent: () =>
+          import('../feat/user/transaction/userTransactionDetail.component').then(
+            (m) => m.UserTransactionDetailComponent,
+          ),
+      },
     ],
   },
 
-  // ── Admin layout — protected by adminGuard, with sidebar nav ────────────
+  // ── Contributor layout ────────────────────────────────────────────────────
+  {
+    path: 'contributor',
+    canActivate: [contributorGuard],
+    loadComponent: () =>
+      import('../layout/contributorLayout.component').then((m) => m.ContributorLayoutComponent), // reuse or swap for a dedicated layout later
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'my-shop' },
+
+      // My shop & products
+      {
+        path: 'my-shop',
+        loadComponent: () =>
+          import('../feat/contributor/shop/contributorMyShop.component').then(
+            (m) => m.contributorMyShopComponent,
+          ),
+      },
+      {
+        path: 'my-products',
+        loadComponent: () =>
+          import('../feat/contributor/product/contributorMyProducts.component').then(
+            (m) => m.contributorMyProductsComponent,
+          ),
+      },
+
+      {
+        path: 'products/create',
+        loadComponent: () =>
+          import('../feat/contributor/product/contributorProductCreate.component').then(
+            (m) => m.contributorProductCreateComponent,
+          ),
+      },
+
+      // Order management
+      {
+        path: 'transactions',
+        loadComponent: () =>
+          import('../feat/contributor/transaction/contributorTransaction.component').then(
+            (m) => m.ContributorTransactionComponent,
+          ),
+      },
+      {
+        path: 'vouchers',
+        loadComponent: () =>
+          import('../feat/voucher/voucherManagement.component').then(
+            (m) => m.VoucherManagementComponent,
+          ),
+      },
+      {
+        path: 'transactions/:id',
+        loadComponent: () =>
+          import('../feat/contributor/transaction/contributorTransactionDetail.component').then(
+            (m) => m.ContributorTransactionDetailComponent,
+          ),
+      },
+      {
+        path: 'returns',
+        loadComponent: () =>
+          import('../feat/contributor/transaction/contributorReturns.component').then(
+            (m) => m.ContributorReturnsComponent,
+          ),
+      },
+
+      // Contributor Profile
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('../feat/contributor/profile/contributorProfile.component').then(
+            (m) => m.ContributorProfileComponent,
+          ),
+      },
+    ],
+  },
+
+  // ── Shipper layout ────────────────────────────────────────────────────────
+  {
+    path: 'shipper',
+    canActivate: [shipperGuard],
+    loadComponent: () =>
+      import('../layout/shipperLayout.component').then((m) => m.ShipperLayoutComponent),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'deliveries' },
+      {
+        path: 'deliveries',
+        loadComponent: () =>
+          import('../feat/shipper/delivery/shipperDelivery.component').then(
+            (m) => m.ShipperDeliveryComponent,
+          ),
+      },
+    ],
+  },
+
+  // ── Admin layout ──────────────────────────────────────────────────────────
   {
     path: 'admin',
     canActivate: [adminGuard],
     loadComponent: () =>
       import('../layout/adminLayout.component').then((m) => m.AdminLayoutComponent),
     children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        redirectTo: 'account',
-      },
+      { path: '', pathMatch: 'full', redirectTo: 'account' },
       {
         path: 'account',
         loadComponent: () =>
@@ -106,12 +243,30 @@ export const routes: Routes = [
             (m) => m.AdminTicketComponent,
           ),
       },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('../feat/admin/dashboard/product/adminProduct.component').then(
+            (m) => m.AdminProductComponent,
+          ),
+      },
+      {
+        path: 'transactions',
+        loadComponent: () =>
+          import('../feat/admin/dashboard/transaction/adminTransaction.component').then(
+            (m) => m.AdminTransactionComponent,
+          ),
+      },
+      {
+        path: 'vouchers',
+        loadComponent: () =>
+          import('../feat/voucher/voucherManagement.component').then(
+            (m) => m.VoucherManagementComponent,
+          ),
+      },
     ],
   },
 
-  // ── Fallback ─────────────────────────────────────────────────────────────
-  {
-    path: '**',
-    redirectTo: 'home',
-  },
+  // ── Fallback ──────────────────────────────────────────────────────────────
+  { path: '**', redirectTo: 'home' },
 ];
